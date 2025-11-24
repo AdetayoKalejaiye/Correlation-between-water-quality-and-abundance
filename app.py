@@ -267,8 +267,8 @@ def cca_analysis():
     for i, param in enumerate(water_params):
         env_arrows.append({
             'name': param_names[param],
-            'x': float(env_loadings[i, 0] * 2),
-            'y': float(env_loadings[i, 1] * 2)
+            'x': float(env_loadings[i, 0] * 2.5),
+            'y': float(env_loadings[i, 1] * 2.5)
         })
     
     # Prepare species arrows
@@ -276,8 +276,8 @@ def cca_analysis():
     for i, org in enumerate(organisms):
         species_arrows.append({
             'name': org,
-            'x': float(species_loadings[i, 0] * 2),
-            'y': float(species_loadings[i, 1] * 2)
+            'x': float(species_loadings[i, 0] * 2.5),
+            'y': float(species_loadings[i, 1] * 2.5)
         })
     
     return jsonify({
@@ -288,6 +288,72 @@ def cca_analysis():
             'axis1': float(pca_env.explained_variance_ratio_[0] * 100),
             'axis2': float(pca_env.explained_variance_ratio_[1] * 100)
         }
+    })
+
+@app.route('/api/pca-analysis', methods=['GET'])
+def pca_analysis():
+    """Perform Principal Component Analysis on combined data"""
+    from sklearn.decomposition import PCA
+    
+    # Combine water params and organism data
+    combined_data = np.hstack([df[water_params].values, df[organisms].values])
+    
+    # Standardize
+    scaler = StandardScaler()
+    scaled_data = scaler.fit_transform(combined_data)
+    
+    # Perform PCA
+    pca = PCA(n_components=2)
+    scores = pca.fit_transform(scaled_data)
+    
+    # Get loadings
+    loadings = pca.components_.T * np.sqrt(pca.explained_variance_)
+    
+    # Prepare sites
+    sites = []
+    for i, row in df.iterrows():
+        sites.append({
+            'id': int(row['id']),
+            'x': float(scores[i, 0]),
+            'y': float(scores[i, 1])
+        })
+    
+    # Prepare variable arrows
+    all_vars = [param_names[p] for p in water_params] + organisms
+    arrows = []
+    for i, var in enumerate(all_vars):
+        arrows.append({
+            'name': var,
+            'x': float(loadings[i, 0] * 3),
+            'y': float(loadings[i, 1] * 3),
+            'type': 'environmental' if i < len(water_params) else 'species'
+        })
+    
+    return jsonify({
+        'sites': sites,
+        'arrows': arrows,
+        'explained_variance': {
+            'pc1': float(pca.explained_variance_ratio_[0] * 100),
+            'pc2': float(pca.explained_variance_ratio_[1] * 100),
+            'total': float(sum(pca.explained_variance_ratio_) * 100)
+        }
+    })
+
+@app.route('/api/phyla-composition', methods=['GET'])
+def phyla_composition():
+    """Get stacked bar chart data for phyla composition"""
+    composition_data = []
+    
+    for _, row in df.iterrows():
+        site_data = {'site_id': int(row['id'])}
+        for org in organisms:
+            site_data[org] = float(row[org])
+        composition_data.append(site_data)
+    
+    return jsonify({
+        'data': composition_data,
+        'organisms': organisms,
+        'total_sites': len(composition_data)
     })
 
 if __name__ == '__main__':
