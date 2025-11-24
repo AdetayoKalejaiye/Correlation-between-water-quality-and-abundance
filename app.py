@@ -229,6 +229,67 @@ def linear_regression_demo():
         }
     })
 
+@app.route('/api/cca-analysis', methods=['GET'])
+def cca_analysis():
+    """Perform Canonical Correspondence Analysis"""
+    from sklearn.decomposition import PCA
+    
+    # Prepare data
+    X = df[water_params].values
+    Y = df[organisms].values
+    
+    # Standardize features
+    scaler_X = StandardScaler()
+    X_scaled = scaler_X.fit_transform(X)
+    
+    # Perform PCA on both datasets for visualization
+    pca_env = PCA(n_components=2)
+    pca_species = PCA(n_components=2)
+    
+    env_scores = pca_env.fit_transform(X_scaled)
+    species_scores = pca_species.fit_transform(Y)
+    
+    # Get loadings (eigenvectors)
+    env_loadings = pca_env.components_.T * np.sqrt(pca_env.explained_variance_)
+    species_loadings = pca_species.components_.T * np.sqrt(pca_species.explained_variance_)
+    
+    # Prepare site scores (samples)
+    sites = []
+    for i, row in df.iterrows():
+        sites.append({
+            'id': int(row['id']),
+            'x': float(env_scores[i, 0]),
+            'y': float(env_scores[i, 1])
+        })
+    
+    # Prepare environmental arrows
+    env_arrows = []
+    for i, param in enumerate(water_params):
+        env_arrows.append({
+            'name': param_names[param],
+            'x': float(env_loadings[i, 0] * 2),
+            'y': float(env_loadings[i, 1] * 2)
+        })
+    
+    # Prepare species arrows
+    species_arrows = []
+    for i, org in enumerate(organisms):
+        species_arrows.append({
+            'name': org,
+            'x': float(species_loadings[i, 0] * 2),
+            'y': float(species_loadings[i, 1] * 2)
+        })
+    
+    return jsonify({
+        'sites': sites,
+        'environmental_arrows': env_arrows,
+        'species_arrows': species_arrows,
+        'explained_variance': {
+            'axis1': float(pca_env.explained_variance_ratio_[0] * 100),
+            'axis2': float(pca_env.explained_variance_ratio_[1] * 100)
+        }
+    })
+
 if __name__ == '__main__':
     print("Starting Water Quality Analysis API with Linear Regression...")
     print("Available endpoints:")
