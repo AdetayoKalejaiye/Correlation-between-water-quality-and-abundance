@@ -419,6 +419,21 @@
                 </div>
             </div>
         </div>
+
+        <div class="card">
+            <h2>📈 Phyla Abundance Trends</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Line graph showing individual organism abundance values across sampling sites
+            </p>
+            
+            <div id="phylaLineChart" style="display: none;">
+                <canvas id="phylaLineCanvas" width="900" height="500"></canvas>
+                <div class="info-section" style="margin-top: 20px;">
+                    <h3>📌 Trend Analysis</h3>
+                    <p>Each line represents a different organism, showing how its abundance changes across sampling sites.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -672,6 +687,7 @@
             ctx.fillText('Environment', legendX + 20, legendY + 30);
             
             ctx.strokeStyle = '#43a047';
+        }
         // Load and render PCA biplot
         async function loadPCA() {
             try {
@@ -829,8 +845,10 @@
                 
                 document.getElementById('phylaLoading').style.display = 'none';
                 document.getElementById('phylaChart').style.display = 'block';
+                document.getElementById('phylaLineChart').style.display = 'block';
                 
                 renderPhylaStackedBar(data);
+                renderPhylaLineGraph(data);
             } catch (error) {
                 document.getElementById('phylaLoading').innerHTML = 
                     `<p style="color: red;">Error loading phyla data: ${error.message}</p>`;
@@ -934,18 +952,170 @@
             });
         }
 
+        function renderPhylaLineGraph(data) {
+            const canvas = document.getElementById('phylaLineCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            const margin = { top: 40, right: 200, bottom: 60, left: 60 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            const colors = ['#1976d2', '#43a047', '#f57c00', '#e53935', '#9c27b0'];
+            
+            // Get all values to determine scale
+            const allValues = [];
+            data.data.forEach(site => {
+                data.organisms.forEach(org => {
+                    allValues.push(site[org]);
+                });
+            });
+            const maxValue = Math.max(...allValues);
+            const minValue = 0;
+            
+            // Scaling functions
+            const xScale = (idx) => margin.left + (idx / (data.data.length - 1)) * chartWidth;
+            const yScale = (val) => margin.top + chartHeight - ((val - minValue) / (maxValue - minValue)) * chartHeight;
+            
+            // Draw title
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Organism Abundance Across Sites', width / 2, 25);
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left, margin.top + chartHeight);
+            ctx.lineTo(margin.left + chartWidth, margin.top + chartHeight);
+            ctx.stroke();
+            
+            // Draw grid lines and y-axis labels
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            ctx.fillStyle = '#666';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'right';
+            
+            const yTicks = 10;
+            for (let i = 0; i <= yTicks; i++) {
+                const val = minValue + (maxValue - minValue) * (i / yTicks);
+                const y = yScale(val);
+                
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(margin.left + chartWidth, y);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#666';
+                ctx.fillText(val.toFixed(2), margin.left - 10, y + 4);
+            }
+            
+            // Y-axis title
+            ctx.save();
+            ctx.translate(15, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#333';
+            ctx.fillText('Abundance', 0, 0);
+            ctx.restore();
+            
+            // X-axis labels
+            ctx.fillStyle = '#666';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'center';
+            data.data.forEach((site, idx) => {
+                const x = xScale(idx);
+                ctx.fillText(`Site ${site.site_id}`, x, margin.top + chartHeight + 20);
+            });
+            
+            // X-axis title
+            ctx.font = 'bold 13px Arial';
+            ctx.fillStyle = '#333';
+            ctx.fillText('Sample Sites', width / 2, height - 15);
+            
+            // Draw lines for each organism
+            data.organisms.forEach((org, orgIdx) => {
+                ctx.strokeStyle = colors[orgIdx];
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                data.data.forEach((site, idx) => {
+                    const x = xScale(idx);
+                    const y = yScale(site[org]);
+                    
+                    if (idx === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                
+                ctx.stroke();
+                
+                // Draw points
+                data.data.forEach((site, idx) => {
+                    const x = xScale(idx);
+                    const y = yScale(site[org]);
+                    
+                    ctx.fillStyle = colors[orgIdx];
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                });
+            });
+            
+            // Draw legend
+            const legendX = width - margin.right + 20;
+            const legendY = margin.top + 20;
+            
+            ctx.font = 'bold 12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#333';
+            ctx.fillText('Organisms:', legendX, legendY - 10);
+            
+            data.organisms.forEach((org, idx) => {
+                const y = legendY + idx * 30;
+                
+                // Draw line sample
+                ctx.strokeStyle = colors[idx];
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(legendX, y);
+                ctx.lineTo(legendX + 30, y);
+                ctx.stroke();
+                
+                // Draw point
+                ctx.fillStyle = colors[idx];
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(legendX + 15, y, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Label
+                ctx.fillStyle = '#333';
+                ctx.font = '11px Arial';
+                ctx.fillText(org, legendX + 35, y + 4);
+            });
+        }
+
         // Load all visualizations on page load
         loadCCA();
         loadPCA();
         loadPhylaComposition();
-    </script>tx.lineTo(legendX + 15, legendY + 45);
-            ctx.stroke();
-            ctx.fillStyle = '#333';
-            ctx.fillText('Species', legendX + 20, legendY + 50);
-        }
-
-        // Load CCA on page load
-        loadCCA();
     </script>
 </body>
 </html>

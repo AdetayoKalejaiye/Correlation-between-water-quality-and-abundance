@@ -345,6 +345,80 @@
                 </ul>
             </div>
         </div>
+
+        <div class="card">
+            <h2>📊 Canonical Correspondence Analysis (CCA)</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Biplot showing relationships between water quality parameters and organism abundance
+            </p>
+            
+            <div class="loading" id="ccaLoading">
+                <div class="spinner"></div>
+                <p>Loading CCA analysis...</p>
+            </div>
+
+            <div id="ccaChart" style="display: none;">
+                <canvas id="ccaCanvas" width="900" height="700"></canvas>
+                <div class="info-section" style="margin-top: 20px;">
+                    <h3>📌 How to Read the CCA Biplot</h3>
+                    <ul>
+                        <li><strong>Blue circles</strong> represent sample sites (water samples)</li>
+                        <li><strong>Red arrows</strong> represent environmental variables (water parameters)</li>
+                        <li><strong>Green arrows</strong> represent organism species</li>
+                        <li>Arrow length indicates strength of relationship</li>
+                        <li>Arrow direction shows correlation pattern</li>
+                        <li>Organisms near environmental arrows are positively associated</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔬 Principal Component Analysis (PCA)</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Ordination showing overall variation patterns in combined environmental and biological data
+            </p>
+            
+            <div class="loading" id="pcaLoading">
+                <div class="spinner"></div>
+                <p>Loading PCA analysis...</p>
+            </div>
+
+            <div id="pcaChart" style="display: none;">
+                <canvas id="pcaCanvas" width="900" height="700"></canvas>
+                <div class="info-section" style="margin-top: 20px;">
+                    <h3>📌 How to Read the PCA Biplot</h3>
+                    <ul>
+                        <li><strong>Blue circles</strong> represent sample sites</li>
+                        <li><strong>Red arrows</strong> represent environmental variables</li>
+                        <li><strong>Green arrows</strong> represent organism species</li>
+                        <li>PC1 and PC2 capture the most variation in the dataset</li>
+                        <li>Distance between sites reflects overall similarity</li>
+                        <li>Variables pointing in similar directions are correlated</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📊 Phyla Composition by Site</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                Stacked bar chart showing relative abundance of organisms at each sampling site
+            </p>
+            
+            <div class="loading" id="phylaLoading">
+                <div class="spinner"></div>
+                <p>Loading phyla composition...</p>
+            </div>
+
+            <div id="phylaChart" style="display: none;">
+                <canvas id="phylaCanvas" width="900" height="500"></canvas>
+                <div class="info-section" style="margin-top: 20px;">
+                    <h3>📌 Composition Details</h3>
+                    <p>Each bar represents 100% of the organism community at that site. Colors indicate different phyla/groups.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -411,6 +485,468 @@
                 alert('Error making prediction: ' + error.message);
             }
         });
+
+        // Load and render CCA biplot
+        async function loadCCA() {
+            try {
+                const response = await fetch('/api/cca-analysis');
+                const data = await response.json();
+                
+                document.getElementById('ccaLoading').style.display = 'none';
+                document.getElementById('ccaChart').style.display = 'block';
+                
+                renderCCABiplot(data);
+            } catch (error) {
+                document.getElementById('ccaLoading').innerHTML = 
+                    `<p style="color: red;">Error loading CCA: ${error.message}</p>`;
+            }
+        }
+
+        function renderCCABiplot(data) {
+            const canvas = document.getElementById('ccaCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Clear canvas
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Calculate scaling with more space
+            const allX = [...data.sites.map(s => s.x), ...data.environmental_arrows.map(a => a.x), ...data.species_arrows.map(a => a.x)];
+            const allY = [...data.sites.map(s => s.y), ...data.environmental_arrows.map(a => a.y), ...data.species_arrows.map(a => a.y)];
+            const maxX = Math.max(...allX.map(Math.abs));
+            const maxY = Math.max(...allY.map(Math.abs));
+            const scale = Math.min(width, height) / 3.2 / Math.max(maxX, maxY);
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            function toCanvasX(x) { return centerX + x * scale; }
+            function toCanvasY(y) { return centerY - y * scale; }
+            
+            // Draw axes
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+            
+            // Draw axis labels
+            ctx.fillStyle = '#666';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Axis 1 (${data.explained_variance.axis1.toFixed(1)}%)`, width - 80, centerY - 10);
+            ctx.save();
+            ctx.translate(20, 80);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(`Axis 2 (${data.explained_variance.axis2.toFixed(1)}%)`, 0, 0);
+            ctx.restore();
+            
+            // Draw sites (samples)
+            ctx.fillStyle = 'rgba(33, 150, 243, 0.7)';
+            ctx.strokeStyle = '#1976d2';
+            ctx.lineWidth = 2;
+            data.sites.forEach(site => {
+                const x = toCanvasX(site.x);
+                const y = toCanvasY(site.y);
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Label
+                ctx.fillStyle = '#1976d2';
+                ctx.font = '11px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(site.id.toString(), x, y - 12);
+                ctx.fillStyle = 'rgba(33, 150, 243, 0.7)';
+            });
+            
+            // Draw environmental arrows (red)
+            ctx.strokeStyle = '#e53935';
+            ctx.fillStyle = '#e53935';
+            ctx.lineWidth = 2.5;
+            data.environmental_arrows.forEach(arrow => {
+                const x = toCanvasX(arrow.x);
+                const y = toCanvasY(arrow.y);
+                
+                // Arrow line
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                // Arrowhead
+                const angle = Math.atan2(centerY - y, x - centerX);
+                const headSize = 10;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x - headSize * Math.cos(angle - Math.PI / 6), y + headSize * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(x - headSize * Math.cos(angle + Math.PI / 6), y + headSize * Math.sin(angle + Math.PI / 6));
+                ctx.closePath();
+                ctx.fill();
+                
+                // Label
+                ctx.font = 'bold 13px Arial';
+                ctx.textAlign = 'center';
+                const labelOffset = 25;
+                const labelX = x + labelOffset * Math.cos(angle);
+                const labelY = y - labelOffset * Math.sin(angle);
+                
+                // Add background to label
+                const metrics = ctx.measureText(arrow.name);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillRect(labelX - metrics.width / 2 - 3, labelY - 11, metrics.width + 6, 16);
+                ctx.fillStyle = '#e53935';
+                ctx.fillText(arrow.name, labelX, labelY);
+            });
+            
+            // Draw species arrows (green)
+            ctx.strokeStyle = '#43a047';
+            ctx.fillStyle = '#43a047';
+            ctx.lineWidth = 2.5;
+            data.species_arrows.forEach(arrow => {
+                const x = toCanvasX(arrow.x);
+                const y = toCanvasY(arrow.y);
+                
+                // Arrow line
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                // Arrowhead
+                const angle = Math.atan2(centerY - y, x - centerX);
+                const headSize = 10;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x - headSize * Math.cos(angle - Math.PI / 6), y + headSize * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(x - headSize * Math.cos(angle + Math.PI / 6), y + headSize * Math.sin(angle + Math.PI / 6));
+                ctx.closePath();
+                ctx.fill();
+                
+                // Label with better spacing
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                const labelOffset = 30;
+                const labelX = x + labelOffset * Math.cos(angle);
+                const labelY = y - labelOffset * Math.sin(angle);
+                
+                // Add background to label for readability
+                const metrics = ctx.measureText(arrow.name);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fillRect(labelX - metrics.width / 2 - 3, labelY - 11, metrics.width + 6, 16);
+                ctx.fillStyle = '#43a047';
+                ctx.fillText(arrow.name, labelX, labelY);
+            });
+            
+            // Add legend
+            const legendX = 20;
+            const legendY = height - 80;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.fillRect(legendX - 5, legendY - 5, 150, 70);
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(legendX - 5, legendY - 5, 150, 70);
+            
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            
+            ctx.fillStyle = '#1976d2';
+            ctx.beginPath();
+            ctx.arc(legendX + 5, legendY + 5, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#333';
+            ctx.fillText('Sample sites', legendX + 15, legendY + 10);
+            
+            ctx.strokeStyle = '#e53935';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(legendX, legendY + 25);
+            ctx.lineTo(legendX + 15, legendY + 25);
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.fillText('Environment', legendX + 20, legendY + 30);
+            
+            ctx.strokeStyle = '#43a047';
+        // Load and render PCA biplot
+        async function loadPCA() {
+            try {
+                const response = await fetch('/api/pca-analysis');
+                const data = await response.json();
+                
+                document.getElementById('pcaLoading').style.display = 'none';
+                document.getElementById('pcaChart').style.display = 'block';
+                
+                renderPCABiplot(data);
+            } catch (error) {
+                document.getElementById('pcaLoading').innerHTML = 
+                    `<p style="color: red;">Error loading PCA: ${error.message}</p>`;
+            }
+        }
+
+        function renderPCABiplot(data) {
+            const canvas = document.getElementById('pcaCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            const allX = [...data.sites.map(s => s.x), ...data.arrows.map(a => a.x)];
+            const allY = [...data.sites.map(s => s.y), ...data.arrows.map(a => a.y)];
+            const maxX = Math.max(...allX.map(Math.abs));
+            const maxY = Math.max(...allY.map(Math.abs));
+            const scale = Math.min(width, height) / 3.2 / Math.max(maxX, maxY);
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            function toCanvasX(x) { return centerX + x * scale; }
+            function toCanvasY(y) { return centerY - y * scale; }
+            
+            // Draw axes
+            ctx.strokeStyle = '#ccc';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(width, centerY);
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, height);
+            ctx.stroke();
+            
+            // Axis labels
+            ctx.fillStyle = '#666';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`PC1 (${data.explained_variance.pc1.toFixed(1)}%)`, width - 80, centerY - 10);
+            ctx.save();
+            ctx.translate(20, 80);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(`PC2 (${data.explained_variance.pc2.toFixed(1)}%)`, 0, 0);
+            ctx.restore();
+            
+            // Draw sites
+            ctx.fillStyle = 'rgba(33, 150, 243, 0.7)';
+            ctx.strokeStyle = '#1976d2';
+            ctx.lineWidth = 2;
+            data.sites.forEach(site => {
+                const x = toCanvasX(site.x);
+                const y = toCanvasY(site.y);
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                ctx.fillStyle = '#1976d2';
+                ctx.font = '11px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(site.id.toString(), x, y - 12);
+                ctx.fillStyle = 'rgba(33, 150, 243, 0.7)';
+            });
+            
+            // Draw arrows
+            data.arrows.forEach(arrow => {
+                const x = toCanvasX(arrow.x);
+                const y = toCanvasY(arrow.y);
+                const color = arrow.type === 'environmental' ? '#e53935' : '#43a047';
+                
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 2.5;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                
+                const angle = Math.atan2(centerY - y, x - centerX);
+                const headSize = 10;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x - headSize * Math.cos(angle - Math.PI / 6), y + headSize * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(x - headSize * Math.cos(angle + Math.PI / 6), y + headSize * Math.sin(angle + Math.PI / 6));
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                const labelOffset = 30;
+                const labelX = x + labelOffset * Math.cos(angle);
+                const labelY = y - labelOffset * Math.sin(angle);
+                
+                const metrics = ctx.measureText(arrow.name);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                ctx.fillRect(labelX - metrics.width / 2 - 3, labelY - 11, metrics.width + 6, 16);
+                ctx.fillStyle = color;
+                ctx.fillText(arrow.name, labelX, labelY);
+            });
+            
+            // Legend
+            const legendX = 20;
+            const legendY = height - 80;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.fillRect(legendX - 5, legendY - 5, 150, 70);
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(legendX - 5, legendY - 5, 150, 70);
+            
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            
+            ctx.fillStyle = '#1976d2';
+            ctx.beginPath();
+            ctx.arc(legendX + 5, legendY + 5, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#333';
+            ctx.fillText('Sample sites', legendX + 15, legendY + 10);
+            
+            ctx.strokeStyle = '#e53935';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(legendX, legendY + 25);
+            ctx.lineTo(legendX + 15, legendY + 25);
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.fillText('Environment', legendX + 20, legendY + 30);
+            
+            ctx.strokeStyle = '#43a047';
+            ctx.beginPath();
+            ctx.moveTo(legendX, legendY + 45);
+            ctx.lineTo(legendX + 15, legendY + 45);
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.fillText('Species', legendX + 20, legendY + 50);
+        }
+
+        // Load and render Phyla composition
+        async function loadPhylaComposition() {
+            try {
+                const response = await fetch('/api/phyla-composition');
+                const data = await response.json();
+                
+                document.getElementById('phylaLoading').style.display = 'none';
+                document.getElementById('phylaChart').style.display = 'block';
+                
+                renderPhylaStackedBar(data);
+            } catch (error) {
+                document.getElementById('phylaLoading').innerHTML = 
+                    `<p style="color: red;">Error loading phyla data: ${error.message}</p>`;
+            }
+        }
+
+        function renderPhylaStackedBar(data) {
+            const canvas = document.getElementById('phylaCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            const margin = { top: 40, right: 200, bottom: 60, left: 60 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            const colors = ['#1976d2', '#43a047', '#f57c00', '#e53935', '#9c27b0'];
+            const barWidth = chartWidth / data.data.length;
+            const padding = barWidth * 0.2;
+            
+            // Draw title
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Organism Composition by Site', width / 2, 25);
+            
+            // Draw bars
+            data.data.forEach((site, idx) => {
+                const x = margin.left + idx * barWidth + padding / 2;
+                let cumulativeY = 0;
+                
+                data.organisms.forEach((org, orgIdx) => {
+                    const value = site[org];
+                    const barHeight = value * chartHeight;
+                    const y = margin.top + chartHeight - cumulativeY - barHeight;
+                    
+                    ctx.fillStyle = colors[orgIdx];
+                    ctx.fillRect(x, y, barWidth - padding, barHeight);
+                    
+                    cumulativeY += barHeight;
+                });
+                
+                // Site label
+                ctx.fillStyle = '#333';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Site ${site.site_id}`, x + (barWidth - padding) / 2, height - margin.bottom + 20);
+            });
+            
+            // Y-axis
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left, margin.top + chartHeight);
+            ctx.lineTo(margin.left + chartWidth, margin.top + chartHeight);
+            ctx.stroke();
+            
+            // Y-axis labels
+            ctx.fillStyle = '#333';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'right';
+            for (let i = 0; i <= 10; i++) {
+                const y = margin.top + chartHeight - (i * chartHeight / 10);
+                ctx.fillText(`${i * 10}%`, margin.left - 10, y + 4);
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(margin.left + chartWidth, y);
+                ctx.stroke();
+            }
+            
+            // Y-axis title
+            ctx.save();
+            ctx.translate(15, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Relative Abundance (%)', 0, 0);
+            ctx.restore();
+            
+            // Legend
+            const legendX = width - margin.right + 20;
+            const legendY = margin.top + 20;
+            
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            
+            data.organisms.forEach((org, idx) => {
+                const y = legendY + idx * 25;
+                
+                ctx.fillStyle = colors[idx];
+                ctx.fillRect(legendX, y - 10, 15, 15);
+                
+                ctx.fillStyle = '#333';
+                ctx.fillText(org, legendX + 20, y + 2);
+            });
+        }
+
+        // Load all visualizations on page load
+        loadCCA();
+        loadPCA();
+        loadPhylaComposition();
+    tx.lineTo(legendX + 15, legendY + 45);
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.fillText('Species', legendX + 20, legendY + 50);
+        }
+
+        // Load CCA on page load
+        loadCCA();
+        
     </script>
 </body>
 </html>

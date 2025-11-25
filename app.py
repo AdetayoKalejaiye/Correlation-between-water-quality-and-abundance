@@ -210,12 +210,30 @@ def linear_regression_demo():
     for org in organisms:
         model_info = build_linear_regression_model(org)
         
+        # Get actual and predicted values for plotting
+        y_actual = df[org].values
+        model = model_info['model']
+        scaler = model_info['scaler']
+        X = df[water_params].values
+        X_scaled = scaler.transform(X)
+        y_predicted = model.predict(X_scaled)
+        
+        # Prepare plot data
+        plot_data = []
+        for i, row in df.iterrows():
+            plot_data.append({
+                'site_id': int(row['id']),
+                'actual': float(y_actual[i]),
+                'predicted': float(y_predicted[i])
+            })
+        
         results[org] = {
             'coefficients': dict(zip([param_names[p] for p in water_params], model_info['coefficients'])),
             'intercept': model_info['intercept'],
             'r2_score': model_info['r2_score'],
             'rmse': model_info['rmse'],
-            'correlations': {param_names[k]: float(v) for k, v in model_info['correlations'].items()}
+            'correlations': {param_names[k]: float(v) for k, v in model_info['correlations'].items()},
+            'plot_data': plot_data
         }
     
     return jsonify({

@@ -298,16 +298,210 @@
                     html += `
                                 </div>
                             </div>
+
+                            <div style="margin-top: 20px; background: white; padding: 20px; border-radius: 10px;">
+                                <h3 style="color: #1976d2; margin-bottom: 15px;">📈 Actual vs Predicted Values</h3>
+                                <canvas id="chart_${organism.replace(/\s+/g, '_')}" width="800" height="400"></canvas>
+                            </div>
                         </div>
                     `;
                 }
 
                 container.innerHTML = html;
 
+                // Draw charts for each organism
+                for (const [organism, modelInfo] of Object.entries(models)) {
+                    drawRegressionChart(organism, modelInfo.plot_data, modelInfo.r2_score);
+                }
+
             } catch (error) {
                 document.getElementById('loading').innerHTML = 
                     `<p style="color: red;">Error loading models: ${error.message}</p>`;
             }
+        }
+
+        function drawRegressionChart(organism, plotData, r2Score) {
+            const canvasId = `chart_${organism.replace(/\s+/g, '_')}`;
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Clear canvas
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Setup margins
+            const margin = { top: 40, right: 40, bottom: 60, left: 70 };
+            const chartWidth = width - margin.left - margin.right;
+            const chartHeight = height - margin.top - margin.bottom;
+            
+            // Get data ranges
+            const allValues = plotData.flatMap(d => [d.actual, d.predicted]);
+            const minVal = Math.min(...allValues);
+            const maxVal = Math.max(...allValues);
+            const range = maxVal - minVal;
+            const yMin = Math.max(0, minVal - range * 0.1);
+            const yMax = maxVal + range * 0.1;
+            
+            // Scaling functions
+            const xScale = (idx) => margin.left + (idx / (plotData.length - 1)) * chartWidth;
+            const yScale = (val) => margin.top + chartHeight - ((val - yMin) / (yMax - yMin)) * chartHeight;
+            
+            // Draw title
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${organism} - Actual vs Predicted (R² = ${r2Score.toFixed(3)})`, width / 2, 25);
+            
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin.left, margin.top);
+            ctx.lineTo(margin.left, margin.top + chartHeight);
+            ctx.lineTo(margin.left + chartWidth, margin.top + chartHeight);
+            ctx.stroke();
+            
+            // Draw grid lines and y-axis labels
+            ctx.strokeStyle = '#e0e0e0';
+            ctx.lineWidth = 1;
+            ctx.fillStyle = '#666';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'right';
+            
+            const yTicks = 5;
+            for (let i = 0; i <= yTicks; i++) {
+                const val = yMin + (yMax - yMin) * (i / yTicks);
+                const y = yScale(val);
+                
+                ctx.beginPath();
+                ctx.moveTo(margin.left, y);
+                ctx.lineTo(margin.left + chartWidth, y);
+                ctx.stroke();
+                
+                ctx.fillText(val.toFixed(2), margin.left - 10, y + 4);
+            }
+            
+            // Y-axis label
+            ctx.save();
+            ctx.translate(20, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#333';
+            ctx.fillText('Abundance', 0, 0);
+            ctx.restore();
+            
+            // X-axis labels (site IDs)
+            ctx.fillStyle = '#666';
+            ctx.font = '11px Arial';
+            ctx.textAlign = 'center';
+            plotData.forEach((d, idx) => {
+                const x = xScale(idx);
+                ctx.fillText(`Site ${d.site_id}`, x, margin.top + chartHeight + 20);
+            });
+            
+            // X-axis label
+            ctx.font = 'bold 13px Arial';
+            ctx.fillStyle = '#333';
+            ctx.fillText('Sample Sites', width / 2, height - 10);
+            
+            // Draw lines
+            // Actual values (blue line)
+            ctx.strokeStyle = '#1976d2';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            plotData.forEach((d, idx) => {
+                const x = xScale(idx);
+                const y = yScale(d.actual);
+                if (idx === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            
+            // Predicted values (red line)
+            ctx.strokeStyle = '#e53935';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            plotData.forEach((d, idx) => {
+                const x = xScale(idx);
+                const y = yScale(d.predicted);
+                if (idx === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw points
+            plotData.forEach((d, idx) => {
+                const x = xScale(idx);
+                
+                // Actual (blue circle)
+                ctx.fillStyle = '#1976d2';
+                ctx.strokeStyle = '#0d47a1';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(x, yScale(d.actual), 6, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Predicted (red square)
+                const predY = yScale(d.predicted);
+                ctx.fillStyle = '#e53935';
+                ctx.strokeStyle = '#b71c1c';
+                ctx.fillRect(x - 5, predY - 5, 10, 10);
+                ctx.strokeRect(x - 5, predY - 5, 10, 10);
+            });
+            
+            // Draw legend
+            const legendX = margin.left + 20;
+            const legendY = margin.top + 20;
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.fillRect(legendX - 10, legendY - 10, 120, 60);
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(legendX - 10, legendY - 10, 120, 60);
+            
+            // Actual
+            ctx.fillStyle = '#1976d2';
+            ctx.beginPath();
+            ctx.arc(legendX + 5, legendY + 5, 5, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.strokeStyle = '#1976d2';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(legendX - 5, legendY + 5);
+            ctx.lineTo(legendX + 15, legendY + 5);
+            ctx.stroke();
+            ctx.fillStyle = '#333';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Actual', legendX + 20, legendY + 10);
+            
+            // Predicted
+            ctx.fillStyle = '#e53935';
+            ctx.fillRect(legendX, legendY + 25, 10, 10);
+            ctx.strokeStyle = '#e53935';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(legendX - 5, legendY + 30);
+            ctx.lineTo(legendX + 15, legendY + 30);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = '#333';
+            ctx.fillText('Predicted', legendX + 20, legendY + 35);
         }
 
         // Load models on page load
