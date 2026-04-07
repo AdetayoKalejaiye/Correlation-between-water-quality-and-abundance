@@ -5,313 +5,171 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Linear Regression Models</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        header {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        h1 {
-            color: #1976d2;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            color: #666;
-            font-size: 1.1em;
-        }
-        nav {
-            display: flex;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .nav-btn {
-            padding: 12px 24px;
-            background: white;
-            border: 2px solid #1976d2;
-            color: #1976d2;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .nav-btn:hover, .nav-btn.active {
-            background: #1976d2;
-            color: white;
-        }
-        .model-card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .model-card h2 {
-            color: #1976d2;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        .metric-box {
-            background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%);
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            border-left: 4px solid #1976d2;
-        }
-        .metric-label {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .metric-value {
-            font-size: 1.8em;
-            font-weight: bold;
-            color: #1976d2;
-        }
-        .coefficients {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-        .coefficients h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-        .coeff-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px;
-            margin-bottom: 8px;
-            background: white;
-            border-radius: 8px;
-            border-left: 3px solid #43a047;
-        }
-        .coeff-name {
-            font-weight: bold;
-            color: #555;
-        }
-        .coeff-value {
-            font-family: 'Courier New', monospace;
-            color: #1976d2;
-            font-weight: bold;
-        }
-        .equation {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-            border: 2px dashed #1976d2;
-        }
-        .equation h3 {
-            color: #1976d2;
-            margin-bottom: 10px;
-        }
-        .equation-text {
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            color: #333;
-            line-height: 1.8;
-            overflow-x: auto;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #1976d2;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1976d2;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .info-box {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .info-box h3 {
-            color: #856404;
-            margin-bottom: 10px;
-        }
-        .info-box p {
-            color: #856404;
-            line-height: 1.6;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        h1 { color: #1976d2; font-size: 2.5em; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        nav { display: flex; gap: 15px; margin: 20px 0; }
+        .nav-btn { padding: 12px 24px; background: white; border: 2px solid #1976d2; color: #1976d2; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s; text-decoration: none; display: inline-block; }
+        .nav-btn:hover, .nav-btn.active { background: #1976d2; color: white; }
+        .model-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .model-card h2 { color: #1976d2; margin-bottom: 20px; font-size: 1.8em; display: flex; align-items: center; gap: 10px; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .metric-box { background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); padding: 20px; border-radius: 10px; text-align: center; border-left: 4px solid #1976d2; }
+        .metric-label { font-size: 0.9em; color: #666; margin-bottom: 5px; font-weight: bold; }
+        .metric-value { font-size: 1.8em; font-weight: bold; color: #1976d2; }
+        .coefficients { background: #f5f5f5; padding: 20px; border-radius: 10px; margin-top: 20px; }
+        .coefficients h3 { color: #333; margin-bottom: 15px; }
+        .coeff-item { display: flex; justify-content: space-between; padding: 12px; margin-bottom: 8px; background: white; border-radius: 8px; border-left: 3px solid #43a047; }
+        .coeff-name { font-weight: bold; color: #555; }
+        .coeff-value { font-family: 'Courier New', monospace; color: #1976d2; font-weight: bold; }
+        .equation { background: white; padding: 20px; border-radius: 10px; margin-top: 20px; border: 2px dashed #1976d2; }
+        .equation h3 { color: #1976d2; margin-bottom: 10px; }
+        .equation-text { font-family: 'Courier New', monospace; font-size: 0.85em; color: #333; line-height: 1.8; overflow-x: auto; }
+        .info-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .info-box h3 { color: #856404; margin-bottom: 10px; }
+        .info-box p { color: #856404; line-height: 1.6; }
+        #modelsGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🌊 Water Quality Analysis</h1>
-            <p class="subtitle">Linear Regression Models for Each Organism</p>
-            <nav>
-                <a href="/" class="nav-btn">Predict</a>
-                <a href="/correlations" class="nav-btn">Correlations</a>
-                <a href="/models" class="nav-btn active">Models</a>
-            </nav>
-        </header>
+<div class="container">
+    <header>
+        <h1>🌊 Water Quality Analysis</h1>
+        <p class="subtitle">Linear Regression Models for Each Organism</p>
+        <nav>
+            <a href="/" class="nav-btn">Predict</a>
+            <a href="/correlations" class="nav-btn">Correlations</a>
+            <a href="/models" class="nav-btn active">Models</a>
+        </nav>
+    </header>
 
-        <div class="info-box">
-            <h3>📘 Understanding Linear Regression Models</h3>
-            <p>
-                Each organism has its own trained linear regression model that predicts abundance based on 4 water quality parameters.
-                The <strong>R² score</strong> measures how well the model fits the data (0-1, higher is better).
-                The <strong>RMSE</strong> shows the average prediction error (lower is better).
-                <strong>Coefficients</strong> indicate how each parameter influences the prediction.
-            </p>
-        </div>
-
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Loading linear regression models...</p>
-        </div>
-
-        <div id="modelsContainer"></div>
+    <div class="info-box">
+        <h3>📘 Understanding Linear Regression Models</h3>
+        <p>
+            Each organism has its own trained linear regression model predicting abundance from 4 water quality parameters.
+            Trained on <strong>15 samples</strong> with complete environmental data (Samples 1–8 and 16–23).
+            <strong>R²</strong> measures model fit (0–1, higher is better). <strong>RMSE</strong> is average prediction error (lower is better).
+        </p>
     </div>
 
-    <script>
-        async function loadModels() {
-            try {
-                const response = await fetch('/api/linear-regression-demo');
-                const data = await response.json();
-                
-                // Hide loading
-                document.getElementById('loading').style.display = 'none';
+    <div id="modelsGrid"></div>
+</div>
 
-                const container = document.getElementById('modelsContainer');
-                const models = data.models;
+<script>
+// ============================================================
+// DATA — 15 samples, 9 organisms
+// ============================================================
+const data = [
+    {id:'S16', site:'LS', temp:25.5,  pH:8.91,     cond:58.0,  sat:110.54, Pseudomonadota:0.449,  Actinomycetota:0.2285, Chordata:0.168,  Cyanobacteriota:0.1300, Bacteroidota:0.0072, Bacillota:0.0069, Verrucomicrobiota:0.0047, Planctomycetota:0.0046, Other:0.0011},
+    {id:'S17', site:'LF', temp:25.8,  pH:6.98,     cond:62.0,  sat:110.42, Pseudomonadota:0.4159, Actinomycetota:0.3098, Chordata:0.1874, Cyanobacteriota:0.0653, Bacteroidota:0.0093, Bacillota:0.0073, Verrucomicrobiota:0.0028, Planctomycetota:0.0009, Other:0.0013},
+    {id:'S18', site:'BS', temp:26.6,  pH:6.78,     cond:55.0,  sat:114.69, Pseudomonadota:0.5765, Actinomycetota:0.1408, Chordata:0.1674, Cyanobacteriota:0.0859, Bacteroidota:0.0165, Bacillota:0.0060, Verrucomicrobiota:0.0024, Planctomycetota:0.0038, Other:0.0007},
+    {id:'S19', site:'BF', temp:26.1,  pH:6.99,     cond:59.0,  sat:111.48, Pseudomonadota:0.5186, Actinomycetota:0.2100, Chordata:0.1238, Cyanobacteriota:0.1203, Bacteroidota:0.0092, Bacillota:0.0070, Verrucomicrobiota:0.0048, Planctomycetota:0.0056, Other:0.0008},
+    {id:'S21', site:'LS', temp:26.0,  pH:7.128,    cond:55.8,  sat:115.98, Pseudomonadota:0.4948, Actinomycetota:0.1840, Chordata:0.2595, Cyanobacteriota:0.0384, Bacteroidota:0.0003, Bacillota:0.0045, Verrucomicrobiota:0.0068, Planctomycetota:0.0085, Other:0.0031},
+    {id:'S22', site:'LF', temp:26.0,  pH:7.122,    cond:56.2,  sat:120.58, Pseudomonadota:0.5248, Actinomycetota:0.1865, Chordata:0.2404, Cyanobacteriota:0.0133, Bacteroidota:0.0114, Bacillota:0.0070, Verrucomicrobiota:0.0086, Planctomycetota:0.0074, Other:0.0006},
+    {id:'S23', site:'BS', temp:26.1,  pH:7.064,    cond:55.0,  sat:133.87, Pseudomonadota:0.5031, Actinomycetota:0.1588, Chordata:0.2809, Cyanobacteriota:0.0323, Bacteroidota:0.0055, Bacillota:0.0024, Verrucomicrobiota:0.0077, Planctomycetota:0.0086, Other:0.0006},
+    {id:'S1',  site:'LS', temp:21.0,  pH:6.92,     cond:60.0,  sat:114.52, Pseudomonadota:0.3606, Actinomycetota:0.3257, Chordata:0.2711, Cyanobacteriota:0.0234, Bacteroidota:0.0192, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S2',  site:'LF', temp:20.5,  pH:6.75,     cond:61.0,  sat:107.84, Pseudomonadota:0.3611, Actinomycetota:0.3871, Chordata:0.2307, Cyanobacteriota:0.0101, Bacteroidota:0.0111, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S3',  site:'BS', temp:22.2,  pH:6.92,     cond:57.0,  sat:114.35, Pseudomonadota:0.3922, Actinomycetota:0.3430, Chordata:0.2554, Cyanobacteriota:0.0095, Bacteroidota:0.0000, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S4',  site:'BF', temp:21.3,  pH:6.92,     cond:60.0,  sat:106.64, Pseudomonadota:0.2520, Actinomycetota:0.1799, Chordata:0.4947, Cyanobacteriota:0.0367, Bacteroidota:0.0367, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S5',  site:'LS', temp:19.6,  pH:6.63,     cond:56.5,  sat:112.0,  Pseudomonadota:0.2871, Actinomycetota:0.1658, Chordata:0.3468, Cyanobacteriota:0.1908, Bacteroidota:0.0095, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S6',  site:'LF', temp:18.85, pH:6.92,     cond:60.5,  sat:114.46, Pseudomonadota:0.3926, Actinomycetota:0.4174, Chordata:0.1476, Cyanobacteriota:0.0168, Bacteroidota:0.0175, Bacillota:0.0067, Verrucomicrobiota:0.0012, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S7',  site:'BS', temp:20.95, pH:6.91,     cond:60.0,  sat:120.05, Pseudomonadota:0.3712, Actinomycetota:0.4017, Chordata:0.1698, Cyanobacteriota:0.0325, Bacteroidota:0.0120, Bacillota:0.0112, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0016},
+    {id:'S8',  site:'BF', temp:20.85, pH:6.755,    cond:60.0,  sat:115.52, Pseudomonadota:0.3525, Actinomycetota:0.3839, Chordata:0.2077, Cyanobacteriota:0.0305, Bacteroidota:0.0188, Bacillota:0.0066, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+];
 
-                let html = '';
-                for (const [organism, modelInfo] of Object.entries(models)) {
-                    const r2Percent = (modelInfo.r2_score * 100).toFixed(1);
-                    const r2Color = modelInfo.r2_score > 0.7 ? '#43a047' : modelInfo.r2_score > 0.4 ? '#ffa726' : '#e53935';
-                    
-                    html += `
-                        <div class="model-card">
-                            <h2>
-                                <span style="font-size: 1.2em;">🦠</span>
-                                ${organism}
-                            </h2>
-                            
-                            <div class="metrics-grid">
-                                <div class="metric-box">
-                                    <div class="metric-label">R² Score</div>
-                                    <div class="metric-value" style="color: ${r2Color};">${modelInfo.r2_score.toFixed(4)}</div>
-                                </div>
-                                <div class="metric-box">
-                                    <div class="metric-label">Accuracy</div>
-                                    <div class="metric-value" style="color: ${r2Color};">${r2Percent}%</div>
-                                </div>
-                                <div class="metric-box">
-                                    <div class="metric-label">RMSE</div>
-                                    <div class="metric-value">${modelInfo.rmse.toFixed(4)}</div>
-                                </div>
-                                <div class="metric-box">
-                                    <div class="metric-label">Intercept</div>
-                                    <div class="metric-value">${modelInfo.intercept.toFixed(4)}</div>
-                                </div>
-                            </div>
+const organisms = ['Pseudomonadota','Actinomycetota','Chordata','Cyanobacteriota','Bacteroidota','Bacillota','Verrucomicrobiota','Planctomycetota','Other'];
+const waterParams = ['temp','pH','cond','sat'];
+const paramNames = {temp:'Temperature', pH:'pH', cond:'Conductivity', sat:'% Saturated'};
 
-                            <div class="coefficients">
-                                <h3>📊 Model Coefficients</h3>
-                    `;
+function mean(arr){return arr.reduce((a,b)=>a+b,0)/arr.length;}
+function std(arr){const m=mean(arr);return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length);}
+function dot(a,b){return a.reduce((s,v,i)=>s+v*b[i],0);}
+function transpose(A){return A[0].map((_,j)=>A.map(r=>r[j]));}
+function matMul(A,B){const m=A.length,p=B[0].length;return Array.from({length:m},(_,i)=>Array.from({length:p},(_,j)=>A[i].reduce((s,v,k)=>s+v*B[k][j],0)));}
 
-                    for (const [param, value] of Object.entries(modelInfo.coefficients)) {
-                        html += `
-                            <div class="coeff-item">
-                                <span class="coeff-name">${param}</span>
-                                <span class="coeff-value">${value.toFixed(6)}</span>
-                            </div>
-                        `;
-                    }
+function standardScale(matrix){
+    const T=transpose(matrix);
+    const means=T.map(mean);
+    const stds=T.map(s=>{const v=std(s);return v===0?1:v;});
+    const scaled=matrix.map(row=>row.map((v,j)=>(v-means[j])/stds[j]));
+    return {scaled,means,stds};
+}
 
-                    html += `
-                            </div>
+function gaussianElim(A,b){
+    const n=b.length,M=A.map((row,i)=>[...row,b[i]]);
+    for(let col=0;col<n;col++){
+        let maxRow=col;
+        for(let r=col+1;r<n;r++) if(Math.abs(M[r][col])>Math.abs(M[maxRow][col])) maxRow=r;
+        [M[col],M[maxRow]]=[M[maxRow],M[col]];
+        for(let r=col+1;r<n;r++){const f=M[r][col]/M[col][col];for(let c=col;c<=n;c++) M[r][c]-=f*M[col][c];}
+    }
+    const x=new Array(n).fill(0);
+    for(let i=n-1;i>=0;i--){x[i]=M[i][n];for(let j=i+1;j<n;j++) x[i]-=M[i][j]*x[j];x[i]/=M[i][i];}
+    return x;
+}
 
-                            <div class="coefficients">
-                                <h3>🔗 Correlations with Water Parameters</h3>
-                    `;
+function olsSolve(X,y){
+    const Xa=X.map(row=>[1,...row]),XaT=transpose(Xa);
+    const beta=gaussianElim(matMul(XaT,Xa),XaT.map(row=>dot(row,y)));
+    return {intercept:beta[0],coefs:beta.slice(1)};
+}
 
-                    for (const [param, value] of Object.entries(modelInfo.correlations)) {
-                        const corrColor = value > 0 ? '#43a047' : '#e53935';
-                        html += `
-                            <div class="coeff-item">
-                                <span class="coeff-name">${param}</span>
-                                <span class="coeff-value" style="color: ${corrColor};">${value.toFixed(4)}</span>
-                            </div>
-                        `;
-                    }
+function r2score(actual,pred){const m=mean(actual),ss_res=actual.reduce((s,v,i)=>s+(v-pred[i])**2,0),ss_tot=actual.reduce((s,v)=>s+(v-m)**2,0);return ss_tot===0?1:1-ss_res/ss_tot;}
+function rmse(actual,pred){return Math.sqrt(actual.reduce((s,v,i)=>s+(v-pred[i])**2,0)/actual.length);}
+function pearson(x,y){const mx=mean(x),my=mean(y),num=x.reduce((s,v,i)=>s+(v-mx)*(y[i]-my),0),den=Math.sqrt(x.reduce((s,v)=>s+(v-mx)**2,0)*y.reduce((s,v)=>s+(v-my)**2,0));return den===0?0:num/den;}
 
-                    html += `
-                            </div>
+function buildModel(organism){
+    const X=data.map(d=>waterParams.map(p=>d[p]));
+    const y=data.map(d=>d[organism]);
+    const {scaled}=standardScale(X);
+    const {intercept,coefs}=olsSolve(scaled,y);
+    const yPred=scaled.map(row=>intercept+dot(coefs,row));
+    const corrs={};
+    waterParams.forEach(p=>{corrs[paramNames[p]]=pearson(data.map(d=>d[p]),y);});
+    return {intercept,coefs,r2:r2score(y,yPred),rmse:rmse(y,yPred),correlations:corrs};
+}
 
-                            <div class="equation">
-                                <h3>📐 Regression Equation</h3>
-                                <div class="equation-text">
-                                    Abundance = ${modelInfo.intercept.toFixed(4)}
-                    `;
+(function init(){
+    const container=document.getElementById('modelsGrid');
+    organisms.forEach(org=>{
+        const m=buildModel(org);
+        const r2Pct=(m.r2*100).toFixed(1);
+        const r2Color=m.r2>0.7?'#43a047':m.r2>0.4?'#ffa726':'#e53935';
 
-                    for (const [param, value] of Object.entries(modelInfo.coefficients)) {
-                        const sign = value >= 0 ? '+' : '';
-                        html += ` ${sign} (${value.toFixed(6)} × ${param})`;
-                    }
+        let coeffHtml='';
+        waterParams.forEach((p,i)=>{
+            coeffHtml+=`<div class="coeff-item"><span class="coeff-name">${paramNames[p]}</span><span class="coeff-value">${m.coefs[i].toFixed(6)}</span></div>`;
+        });
 
-                    html += `
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                container.innerHTML = html;
-
-            } catch (error) {
-                document.getElementById('loading').innerHTML = 
-                    `<p style="color: red;">Error loading models: ${error.message}</p>`;
-            }
+        let corrHtml='';
+        for(const [param,val] of Object.entries(m.correlations)){
+            const cc=val>0?'#43a047':'#e53935';
+            corrHtml+=`<div class="coeff-item"><span class="coeff-name">${param}</span><span class="coeff-value" style="color:${cc}">${val.toFixed(4)}</span></div>`;
         }
 
-        // Load models on page load
-        loadModels();
-    </script>
+        let eqParts=waterParams.map((p,i)=>{const s=m.coefs[i]>=0?'+':'';return ` ${s}(${m.coefs[i].toFixed(6)} × ${paramNames[p]})`;}).join('');
+
+        const card=document.createElement('div');
+        card.className='model-card';
+        card.innerHTML=`
+            <h2><span style="font-size:1.2em">🦠</span> ${org}</h2>
+            <div class="metrics-grid">
+                <div class="metric-box"><div class="metric-label">R² Score</div><div class="metric-value" style="color:${r2Color}">${m.r2.toFixed(4)}</div></div>
+                <div class="metric-box"><div class="metric-label">Accuracy</div><div class="metric-value" style="color:${r2Color}">${r2Pct}%</div></div>
+                <div class="metric-box"><div class="metric-label">RMSE</div><div class="metric-value">${m.rmse.toFixed(4)}</div></div>
+                <div class="metric-box"><div class="metric-label">Intercept</div><div class="metric-value">${m.intercept.toFixed(4)}</div></div>
+            </div>
+            <div class="coefficients"><h3>📊 Model Coefficients</h3>${coeffHtml}</div>
+            <div class="coefficients"><h3>🔗 Correlations with Water Parameters</h3>${corrHtml}</div>
+            <div class="equation"><h3>📐 Regression Equation</h3>
+            <div class="equation-text">Abundance = ${m.intercept.toFixed(4)}${eqParts}</div></div>
+        `;
+        container.appendChild(card);
+    });
+})();
+</script>
 </body>
 </html>
