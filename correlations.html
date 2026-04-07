@@ -5,294 +5,161 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Correlation Analysis</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        header {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        h1 {
-            color: #1976d2;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            color: #666;
-            font-size: 1.1em;
-        }
-        nav {
-            display: flex;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .nav-btn {
-            padding: 12px 24px;
-            background: white;
-            border: 2px solid #1976d2;
-            color: #1976d2;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .nav-btn:hover, .nav-btn.active {
-            background: #1976d2;
-            color: white;
-        }
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .card h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-        .heatmap {
-            overflow-x: auto;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-        th, td {
-            padding: 15px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-        th {
-            background: #1976d2;
-            color: white;
-            font-weight: bold;
-        }
-        .organism-label {
-            background: #f5f5f5;
-            font-weight: bold;
-            text-align: left;
-        }
-        .corr-cell {
-            font-weight: bold;
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
-        .corr-cell:hover {
-            transform: scale(1.1);
-        }
-        .legend {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 30px;
-            padding: 20px;
-            background: #f5f5f5;
-            border-radius: 8px;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .legend-color {
-            width: 30px;
-            height: 30px;
-            border-radius: 5px;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #1976d2;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1976d2;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .stat-box {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .stat-label {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        .stat-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #1976d2;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        h1 { color: #1976d2; font-size: 2.5em; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        nav { display: flex; gap: 15px; margin: 20px 0; }
+        .nav-btn { padding: 12px 24px; background: white; border: 2px solid #1976d2; color: #1976d2; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s; text-decoration: none; display: inline-block; }
+        .nav-btn:hover, .nav-btn.active { background: #1976d2; color: white; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card h2 { color: #333; margin-bottom: 20px; font-size: 1.8em; }
+        .heatmap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 0.9em; }
+        th { background: #1976d2; color: white; font-weight: bold; }
+        .organism-label { background: #f5f5f5; font-weight: bold; text-align: left; }
+        .corr-cell { font-weight: bold; transition: transform 0.2s; cursor: pointer; }
+        .corr-cell:hover { transform: scale(1.1); }
+        .legend { display: flex; justify-content: center; gap: 30px; margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 8px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 10px; }
+        .legend-color { width: 30px; height: 30px; border-radius: 5px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .stat-box { background: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center; }
+        .stat-label { font-size: 0.9em; color: #666; margin-bottom: 5px; }
+        .stat-value { font-size: 1.5em; font-weight: bold; color: #1976d2; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🌊 Water Quality Analysis</h1>
-            <p class="subtitle">Correlation Analysis Between Water Parameters and Organism Abundance</p>
-            <nav>
-                <a href="/" class="nav-btn">Predict</a>
-                <a href="/correlations" class="nav-btn active">Correlations</a>
-                <a href="/models" class="nav-btn">Models</a>
-            </nav>
-        </header>
+<div class="container">
+    <header>
+        <h1>🌊 Water Quality Analysis</h1>
+        <p class="subtitle">Correlation Analysis Between Water Parameters and Organism Abundance</p>
+        <nav>
+            <a href="/" class="nav-btn">Predict</a>
+            <a href="/correlations" class="nav-btn active">Correlations</a>
+            <a href="/models" class="nav-btn">Models</a>
+        </nav>
+    </header>
 
-        <div class="card">
-            <h2>🔥 Correlation Heatmap</h2>
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Loading correlation data...</p>
-            </div>
-            <div class="heatmap" id="heatmapContainer" style="display: none;">
-                <table id="correlationTable"></table>
-            </div>
-            
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-color" style="background: rgba(34, 139, 34, 0.8);"></div>
-                    <span>Strong Positive (> 0.5)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: rgba(34, 139, 34, 0.3);"></div>
-                    <span>Weak Positive (0 to 0.5)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: rgba(220, 20, 60, 0.3);"></div>
-                    <span>Weak Negative (-0.5 to 0)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: rgba(220, 20, 60, 0.8);"></div>
-                    <span>Strong Negative (< -0.5)</span>
-                </div>
-            </div>
+    <div class="card">
+        <h2>🔥 Correlation Heatmap</h2>
+        <div class="heatmap" id="heatmapContainer">
+            <table id="correlationTable"></table>
         </div>
-
-        <div class="card">
-            <h2>📈 Correlation Statistics</h2>
-            <div class="stats" id="statsContainer"></div>
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(34,139,34,0.8);"></div>
+                <span>Strong Positive (&gt; 0.5)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(34,139,34,0.3);"></div>
+                <span>Weak Positive (0 to 0.5)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(220,20,60,0.3);"></div>
+                <span>Weak Negative (-0.5 to 0)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(220,20,60,0.8);"></div>
+                <span>Strong Negative (&lt; -0.5)</span>
+            </div>
         </div>
     </div>
 
-    <script>
-        function getCorrelationColor(value) {
-            const absValue = Math.abs(value);
-            if (value > 0) {
-                return `rgba(34, 139, 34, ${absValue})`;
-            } else {
-                return `rgba(220, 20, 60, ${absValue})`;
-            }
-        }
+    <div class="card">
+        <h2>📈 Correlation Statistics</h2>
+        <div class="stats" id="statsContainer"></div>
+    </div>
+</div>
 
-        async function loadCorrelations() {
-            try {
-                const response = await fetch('/api/correlations');
-                const data = await response.json();
-                
-                // Hide loading
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('heatmapContainer').style.display = 'block';
+<script>
+// ============================================================
+// DATA — 15 samples, 9 organisms
+// ============================================================
+const data = [
+    {id:'S16', site:'LS', temp:25.5,  pH:8.91,     cond:58.0,  sat:110.54, Pseudomonadota:0.449,  Actinomycetota:0.2285, Chordata:0.168,  Cyanobacteriota:0.1300, Bacteroidota:0.0072, Bacillota:0.0069, Verrucomicrobiota:0.0047, Planctomycetota:0.0046, Other:0.0011},
+    {id:'S17', site:'LF', temp:25.8,  pH:6.98,     cond:62.0,  sat:110.42, Pseudomonadota:0.4159, Actinomycetota:0.3098, Chordata:0.1874, Cyanobacteriota:0.0653, Bacteroidota:0.0093, Bacillota:0.0073, Verrucomicrobiota:0.0028, Planctomycetota:0.0009, Other:0.0013},
+    {id:'S18', site:'BS', temp:26.6,  pH:6.78,     cond:55.0,  sat:114.69, Pseudomonadota:0.5765, Actinomycetota:0.1408, Chordata:0.1674, Cyanobacteriota:0.0859, Bacteroidota:0.0165, Bacillota:0.0060, Verrucomicrobiota:0.0024, Planctomycetota:0.0038, Other:0.0007},
+    {id:'S19', site:'BF', temp:26.1,  pH:6.99,     cond:59.0,  sat:111.48, Pseudomonadota:0.5186, Actinomycetota:0.2100, Chordata:0.1238, Cyanobacteriota:0.1203, Bacteroidota:0.0092, Bacillota:0.0070, Verrucomicrobiota:0.0048, Planctomycetota:0.0056, Other:0.0008},
+    {id:'S21', site:'LS', temp:26.0,  pH:7.128,    cond:55.8,  sat:115.98, Pseudomonadota:0.4948, Actinomycetota:0.1840, Chordata:0.2595, Cyanobacteriota:0.0384, Bacteroidota:0.0003, Bacillota:0.0045, Verrucomicrobiota:0.0068, Planctomycetota:0.0085, Other:0.0031},
+    {id:'S22', site:'LF', temp:26.0,  pH:7.122,    cond:56.2,  sat:120.58, Pseudomonadota:0.5248, Actinomycetota:0.1865, Chordata:0.2404, Cyanobacteriota:0.0133, Bacteroidota:0.0114, Bacillota:0.0070, Verrucomicrobiota:0.0086, Planctomycetota:0.0074, Other:0.0006},
+    {id:'S23', site:'BS', temp:26.1,  pH:7.064,    cond:55.0,  sat:133.87, Pseudomonadota:0.5031, Actinomycetota:0.1588, Chordata:0.2809, Cyanobacteriota:0.0323, Bacteroidota:0.0055, Bacillota:0.0024, Verrucomicrobiota:0.0077, Planctomycetota:0.0086, Other:0.0006},
+    {id:'S1',  site:'LS', temp:21.0,  pH:6.92,     cond:60.0,  sat:114.52, Pseudomonadota:0.3606, Actinomycetota:0.3257, Chordata:0.2711, Cyanobacteriota:0.0234, Bacteroidota:0.0192, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S2',  site:'LF', temp:20.5,  pH:6.75,     cond:61.0,  sat:107.84, Pseudomonadota:0.3611, Actinomycetota:0.3871, Chordata:0.2307, Cyanobacteriota:0.0101, Bacteroidota:0.0111, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S3',  site:'BS', temp:22.2,  pH:6.92,     cond:57.0,  sat:114.35, Pseudomonadota:0.3922, Actinomycetota:0.3430, Chordata:0.2554, Cyanobacteriota:0.0095, Bacteroidota:0.0000, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S4',  site:'BF', temp:21.3,  pH:6.92,     cond:60.0,  sat:106.64, Pseudomonadota:0.2520, Actinomycetota:0.1799, Chordata:0.4947, Cyanobacteriota:0.0367, Bacteroidota:0.0367, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S5',  site:'LS', temp:19.6,  pH:6.63,     cond:56.5,  sat:112.0,  Pseudomonadota:0.2871, Actinomycetota:0.1658, Chordata:0.3468, Cyanobacteriota:0.1908, Bacteroidota:0.0095, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S6',  site:'LF', temp:18.85, pH:6.92,     cond:60.5,  sat:114.46, Pseudomonadota:0.3926, Actinomycetota:0.4174, Chordata:0.1476, Cyanobacteriota:0.0168, Bacteroidota:0.0175, Bacillota:0.0067, Verrucomicrobiota:0.0012, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S7',  site:'BS', temp:20.95, pH:6.91,     cond:60.0,  sat:120.05, Pseudomonadota:0.3712, Actinomycetota:0.4017, Chordata:0.1698, Cyanobacteriota:0.0325, Bacteroidota:0.0120, Bacillota:0.0112, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0016},
+    {id:'S8',  site:'BF', temp:20.85, pH:6.755,    cond:60.0,  sat:115.52, Pseudomonadota:0.3525, Actinomycetota:0.3839, Chordata:0.2077, Cyanobacteriota:0.0305, Bacteroidota:0.0188, Bacillota:0.0066, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+];
 
-                // Build table
-                const table = document.getElementById('correlationTable');
-                const heatmapData = data.heatmap_data;
-                
-                // Get parameter names
-                const paramNames = Object.keys(heatmapData[0]).filter(key => key !== 'organism');
-                
-                // Create header
-                let html = '<thead><tr><th>Organism</th>';
-                paramNames.forEach(param => {
-                    html += `<th>${param}</th>`;
-                });
-                html += '</tr></thead><tbody>';
-                
-                // Create rows
-                heatmapData.forEach(row => {
-                    html += `<tr><td class="organism-label">${row.organism}</td>`;
-                    paramNames.forEach(param => {
-                        const value = row[param];
-                        const color = getCorrelationColor(value);
-                        html += `<td class="corr-cell" style="background-color: ${color}; color: ${Math.abs(value) > 0.5 ? 'white' : 'black'};">${value.toFixed(3)}</td>`;
-                    });
-                    html += '</tr>';
-                });
-                
-                html += '</tbody>';
-                table.innerHTML = html;
+const organisms = ['Pseudomonadota','Actinomycetota','Chordata','Cyanobacteriota','Bacteroidota','Bacillota','Verrucomicrobiota','Planctomycetota','Other'];
+const waterParams = ['temp','pH','cond','sat'];
+const paramNames = {temp:'Temperature', pH:'pH', cond:'Conductivity', sat:'% Saturated'};
 
-                // Calculate and display statistics
-                const correlations = data.correlation_matrix;
-                const values = correlations.map(c => c.correlation);
-                const avgCorr = values.reduce((a, b) => a + b, 0) / values.length;
-                const maxCorr = Math.max(...values);
-                const minCorr = Math.min(...values);
-                
-                const maxItem = correlations.find(c => c.correlation === maxCorr);
-                const minItem = correlations.find(c => c.correlation === minCorr);
+function mean(arr) { return arr.reduce((a,b)=>a+b,0)/arr.length; }
+function pearson(x,y) {
+    const mx=mean(x),my=mean(y);
+    const num=x.reduce((s,v,i)=>s+(v-mx)*(y[i]-my),0);
+    const den=Math.sqrt(x.reduce((s,v)=>s+(v-mx)**2,0)*y.reduce((s,v)=>s+(v-my)**2,0));
+    return den===0?0:num/den;
+}
 
-                const statsHTML = `
-                    <div class="stat-box">
-                        <div class="stat-label">Average Correlation</div>
-                        <div class="stat-value">${avgCorr.toFixed(3)}</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Strongest Positive</div>
-                        <div class="stat-value">${maxCorr.toFixed(3)}</div>
-                        <div class="stat-label">${maxItem.organism} - ${maxItem.parameter}</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Strongest Negative</div>
-                        <div class="stat-value">${minCorr.toFixed(3)}</div>
-                        <div class="stat-label">${minItem.organism} - ${minItem.parameter}</div>
-                    </div>
-                `;
-                document.getElementById('statsContainer').innerHTML = statsHTML;
+function getCorrelationColor(value) {
+    const absValue=Math.abs(value);
+    return value>0?`rgba(34,139,34,${absValue})`:`rgba(220,20,60,${absValue})`;
+}
 
-            } catch (error) {
-                document.getElementById('loading').innerHTML = 
-                    `<p style="color: red;">Error loading correlations: ${error.message}</p>`;
-            }
-        }
+function buildCorrelationData() {
+    const corrMatrix=[];
+    const heatmapData=[];
+    organisms.forEach(org=>{
+        const row={organism:org};
+        waterParams.forEach(p=>{
+            const corr=pearson(data.map(d=>d[p]),data.map(d=>d[org]));
+            row[paramNames[p]]=corr;
+            corrMatrix.push({organism:org,parameter:paramNames[p],correlation:corr});
+        });
+        heatmapData.push(row);
+    });
+    return {corrMatrix,heatmapData};
+}
 
-        // Load data on page load
-        loadCorrelations();
-    </script>
+(function init(){
+    const {corrMatrix,heatmapData}=buildCorrelationData();
+    const paramLabels=waterParams.map(p=>paramNames[p]);
+    let html='<thead><tr><th>Organism</th>';
+    paramLabels.forEach(p=>{html+=`<th>${p}</th>`;});
+    html+='</tr></thead><tbody>';
+    heatmapData.forEach(row=>{
+        html+=`<tr><td class="organism-label">${row.organism}</td>`;
+        paramLabels.forEach(p=>{
+            const value=row[p];
+            const color=getCorrelationColor(value);
+            html+=`<td class="corr-cell" style="background-color:${color};color:${Math.abs(value)>0.5?'white':'black'}">${value.toFixed(3)}</td>`;
+        });
+        html+='</tr>';
+    });
+    html+='</tbody>';
+    document.getElementById('correlationTable').innerHTML=html;
+
+    const values=corrMatrix.map(c=>c.correlation);
+    const avgCorr=values.reduce((a,b)=>a+b,0)/values.length;
+    const maxCorr=Math.max(...values);
+    const minCorr=Math.min(...values);
+    const maxItem=corrMatrix.find(c=>c.correlation===maxCorr);
+    const minItem=corrMatrix.find(c=>c.correlation===minCorr);
+    document.getElementById('statsContainer').innerHTML=`
+        <div class="stat-box"><div class="stat-label">Average Correlation</div><div class="stat-value">${avgCorr.toFixed(3)}</div></div>
+        <div class="stat-box"><div class="stat-label">Strongest Positive</div><div class="stat-value">${maxCorr.toFixed(3)}</div><div class="stat-label">${maxItem.organism} — ${maxItem.parameter}</div></div>
+        <div class="stat-box"><div class="stat-label">Strongest Negative</div><div class="stat-value">${minCorr.toFixed(3)}</div><div class="stat-label">${minItem.organism} — ${minItem.parameter}</div></div>
+        <div class="stat-box"><div class="stat-label">Samples Used</div><div class="stat-value">15</div></div>
+    `;
+})();
+</script>
 </body>
 </html>
