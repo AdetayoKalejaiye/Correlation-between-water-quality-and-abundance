@@ -5,250 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Water Quality Analysis - Linear Regression</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        header {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        h1 {
-            color: #1976d2;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            color: #666;
-            font-size: 1.1em;
-        }
-        nav {
-            display: flex;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .nav-btn {
-            padding: 12px 24px;
-            background: white;
-            border: 2px solid #1976d2;
-            color: #1976d2;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .nav-btn:hover, .nav-btn.active {
-            background: #1976d2;
-            color: white;
-        }
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .card h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            font-weight: bold;
-            color: #555;
-            margin-bottom: 8px;
-        }
-        select, input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        select:focus, input:focus {
-            outline: none;
-            border-color: #1976d2;
-        }
-        .input-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .predict-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #1976d2 0%, #43a047 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .predict-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-        }
-        .result {
-            display: none;
-            margin-top: 30px;
-            padding: 25px;
-            background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%);
-            border-radius: 12px;
-            border-left: 5px solid #43a047;
-        }
-        .result.show {
-            display: block;
-            animation: slideIn 0.5s;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .result h3 {
-            color: #1976d2;
-            margin-bottom: 15px;
-        }
-        .result-item {
-            padding: 10px 0;
-            border-bottom: 1px solid #ddd;
-        }
-        .result-item:last-child {
-            border-bottom: none;
-        }
-        .result-label {
-            font-weight: bold;
-            color: #555;
-        }
-        .result-value {
-            color: #333;
-            font-size: 1.1em;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 30px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #1976d2 0%, #43a047 100%);
-            transition: width 1s ease-out;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-        .metrics {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .metric-box {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-        .metric-label {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        .metric-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #1976d2;
-        }
-        .info-section {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-        .info-section h3 {
-            color: #1976d2;
-            margin-bottom: 15px;
-        }
-        .info-section ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        .info-section li {
-            padding: 8px 0;
-            color: #555;
-            padding-left: 20px;
-            position: relative;
-        }
-        .info-section li:before {
-            content: "→";
-            position: absolute;
-            left: 0;
-            color: #43a047;
-            font-weight: bold;
-        }
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #1976d2;
-        }
-        .loading.show {
-            display: block;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #1976d2;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Page sections */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        h1 { color: #1976d2; font-size: 2.5em; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 1.1em; }
+        nav { display: flex; gap: 15px; margin: 20px 0; }
+        .nav-btn { padding: 12px 24px; background: white; border: 2px solid #1976d2; color: #1976d2; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: all 0.3s; text-decoration: none; display: inline-block; }
+        .nav-btn:hover, .nav-btn.active { background: #1976d2; color: white; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card h2 { color: #333; margin-bottom: 20px; font-size: 1.8em; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; color: #555; margin-bottom: 8px; }
+        select, input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; transition: border-color 0.3s; }
+        select:focus, input:focus { outline: none; border-color: #1976d2; }
+        .input-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px; }
+        .predict-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #1976d2 0%, #43a047 100%); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: transform 0.2s; }
+        .predict-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+        .result { display: none; margin-top: 30px; padding: 25px; background: linear-gradient(135deg, #e3f2fd 0%, #e8f5e9 100%); border-radius: 12px; border-left: 5px solid #43a047; }
+        .result.show { display: block; animation: slideIn 0.5s; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .result h3 { color: #1976d2; margin-bottom: 15px; }
+        .result-item { padding: 10px 0; border-bottom: 1px solid #ddd; }
+        .result-item:last-child { border-bottom: none; }
+        .result-label { font-weight: bold; color: #555; }
+        .result-value { color: #333; font-size: 1.1em; }
+        .progress-bar { width: 100%; height: 30px; background: #e0e0e0; border-radius: 15px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #1976d2 0%, #43a047 100%); transition: width 1s ease-out; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }
+        .metric-box { background: white; padding: 15px; border-radius: 8px; text-align: center; }
+        .metric-label { font-size: 0.9em; color: #666; margin-bottom: 5px; }
+        .metric-value { font-size: 1.5em; font-weight: bold; color: #1976d2; }
+        .info-section { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .info-section h3 { color: #1976d2; margin-bottom: 15px; }
+        .info-section ul { list-style: none; padding-left: 0; }
+        .info-section li { padding: 8px 0; color: #555; padding-left: 20px; position: relative; }
+        .info-section li:before { content: "→"; position: absolute; left: 0; color: #43a047; font-weight: bold; }
+        .loading { display: none; text-align: center; padding: 20px; color: #1976d2; }
+        .loading.show { display: block; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #1976d2; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .page-section { display: none; }
         .page-section.active { display: block; }
-
-        /* Correlations table */
         .corr-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .corr-table th, .corr-table td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        .corr-table th, .corr-table td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 0.9em; }
         .corr-table th { background: #1976d2; color: white; }
         .corr-table td { font-weight: bold; }
-
-        /* Models grid */
         .models-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
         .model-card { background: #f5f5f5; padding: 20px; border-radius: 10px; border-left: 4px solid #1976d2; }
         .model-card h3 { color: #1976d2; margin-bottom: 10px; }
@@ -257,258 +60,245 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🌊 Water Quality Analysis</h1>
-            <p class="subtitle">Linear Regression Model for Organism Abundance Prediction</p>
-            <nav>
-                <button class="nav-btn active" onclick="showPage('predict', this)">Predict</button>
-                <button class="nav-btn" onclick="showPage('correlations', this)">Correlations</button>
-                <button class="nav-btn" onclick="showPage('models', this)">Models</button>
-            </nav>
-        </header>
+<div class="container">
+    <header>
+        <h1>🌊 Water Quality Analysis</h1>
+        <p class="subtitle">Linear Regression Model for Organism Abundance Prediction</p>
+        <nav>
+            <button class="nav-btn active" onclick="showPage('predict', this)">Predict</button>
+            <button class="nav-btn" onclick="showPage('correlations', this)">Correlations</button>
+            <button class="nav-btn" onclick="showPage('models', this)">Models</button>
+        </nav>
+    </header>
 
-        <!-- PREDICT PAGE -->
-        <div id="page-predict" class="page-section active">
-            <div class="card">
-                <h2>📊 Predict Organism Abundance</h2>
-                
-                <form id="predictionForm">
+    <!-- PREDICT PAGE -->
+    <div id="page-predict" class="page-section active">
+        <div class="card">
+            <h2>📊 Predict Organism Abundance</h2>
+            <form id="predictionForm">
+                <div class="form-group">
+                    <label for="organism">Select Organism:</label>
+                    <select id="organism" name="organism" required>
+                        <option value="Pseudomonadota">Pseudomonadota</option>
+                        <option value="Actinomycetota">Actinomycetota</option>
+                        <option value="Chordata">Chordata</option>
+                        <option value="Cyanobacteriota">Cyanobacteriota</option>
+                        <option value="Bacteroidota">Bacteroidota</option>
+                        <option value="Bacillota">Bacillota</option>
+                        <option value="Verrucomicrobiota">Verrucomicrobiota</option>
+                        <option value="Planctomycetota">Planctomycetota</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="input-grid">
                     <div class="form-group">
-                        <label for="organism">Select Organism:</label>
-                        <select id="organism" name="organism" required>
-                            <option value="Pseudomonadota">Pseudomonadota</option>
-                            <option value="Actinomycetota">Actinomycetota</option>
-                            <option value="Chordata">Chordata</option>
-                            <option value="Cyanobacteriota">Cyanobacteriota</option>
-                            <option value="Other">Other</option>
-                        </select>
+                        <label for="temperature">Temperature (°C):</label>
+                        <input type="number" id="temperature" name="temperature" step="0.1" value="22.0" required>
                     </div>
-
-                    <div class="input-grid">
-                        <div class="form-group">
-                            <label for="temperature">Temperature (°C):</label>
-                            <input type="number" id="temperature" name="temperature" step="0.1" value="26.0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="pH">pH Level:</label>
-                            <input type="number" id="pH" name="pH" step="0.01" value="7.0" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="conductivity">Conductivity (μS/cm):</label>
-                            <input type="number" id="conductivity" name="conductivity" step="1" value="600" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="saturated">Dissolved Oxygen:</label>
-                            <input type="number" id="saturated" name="saturated" step="0.1" value="12" required>
-                        </div>
+                    <div class="form-group">
+                        <label for="pH">pH Level:</label>
+                        <input type="number" id="pH" name="pH" step="0.01" value="6.9" required>
                     </div>
-
-                    <button type="submit" class="predict-btn">🔬 Predict Abundance</button>
-                </form>
-
-                <div class="loading" id="loading">
-                    <div class="spinner"></div>
-                    <p>Calculating prediction...</p>
-                </div>
-
-                <div class="result" id="result">
-                    <h3>🎯 Prediction Results</h3>
-                    <div class="result-item">
-                        <span class="result-label">Organism:</span>
-                        <span class="result-value" id="resultOrganism"></span>
+                    <div class="form-group">
+                        <label for="conductivity">Conductivity (μS/cm):</label>
+                        <input type="number" id="conductivity" name="conductivity" step="0.1" value="59.0" required>
                     </div>
-                    <div class="result-item">
-                        <span class="result-label">Predicted Abundance:</span>
-                        <span class="result-value" id="resultAbundance"></span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill">0%</div>
-                    </div>
-                    <div class="metrics">
-                        <div class="metric-box">
-                            <div class="metric-label">R² Score</div>
-                            <div class="metric-value" id="r2Score">-</div>
-                        </div>
-                        <div class="metric-box">
-                            <div class="metric-label">RMSE</div>
-                            <div class="metric-value" id="rmse">-</div>
-                        </div>
-                    </div>
-                    <div class="info-section">
-                        <h3>Model Coefficients</h3>
-                        <div id="coefficients"></div>
+                    <div class="form-group">
+                        <label for="saturated">% Saturated:</label>
+                        <input type="number" id="saturated" name="saturated" step="0.1" value="115.0" required>
                     </div>
                 </div>
+                <button type="submit" class="predict-btn">🔬 Predict Abundance</button>
+            </form>
 
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Calculating prediction...</p>
+            </div>
+
+            <div class="result" id="result">
+                <h3>🎯 Prediction Results</h3>
+                <div class="result-item">
+                    <span class="result-label">Organism:</span>
+                    <span class="result-value" id="resultOrganism"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Predicted Abundance:</span>
+                    <span class="result-value" id="resultAbundance"></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill">0%</div>
+                </div>
+                <div class="metrics">
+                    <div class="metric-box">
+                        <div class="metric-label">R² Score</div>
+                        <div class="metric-value" id="r2Score">-</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">RMSE</div>
+                        <div class="metric-value" id="rmse">-</div>
+                    </div>
+                </div>
                 <div class="info-section">
-                    <h3>ℹ️ About This Model</h3>
-                    <ul>
-                        <li>Uses Linear Regression for accurate predictions</li>
-                        <li>Features are standardized using StandardScaler</li>
-                        <li>Trained on 7 water quality samples</li>
-                        <li>R² score indicates model fit quality (0-1, higher is better)</li>
-                        <li>RMSE measures prediction error (lower is better)</li>
-                    </ul>
+                    <h3>Model Coefficients</h3>
+                    <div id="coefficients"></div>
                 </div>
             </div>
 
-            <div class="card">
-                <h2>📊 Canonical Correspondence Analysis (CCA)</h2>
-                <p style="color: #666; margin-bottom: 20px;">Biplot showing relationships between water quality parameters and organism abundance</p>
-                <canvas id="ccaCanvas" width="900" height="700"></canvas>
-                <div class="info-section" style="margin-top: 20px;">
-                    <h3>📌 How to Read the CCA Biplot</h3>
-                    <ul>
-                        <li><strong>Blue circles</strong> represent sample sites (water samples)</li>
-                        <li><strong>Red arrows</strong> represent environmental variables (water parameters)</li>
-                        <li><strong>Green arrows</strong> represent organism species</li>
-                        <li>Arrow length indicates strength of relationship</li>
-                        <li>Arrow direction shows correlation pattern</li>
-                        <li>Organisms near environmental arrows are positively associated</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>🔬 Principal Component Analysis (PCA)</h2>
-                <p style="color: #666; margin-bottom: 20px;">Ordination showing overall variation patterns in combined environmental and biological data</p>
-                <canvas id="pcaCanvas" width="900" height="700"></canvas>
-                <div class="info-section" style="margin-top: 20px;">
-                    <h3>📌 How to Read the PCA Biplot</h3>
-                    <ul>
-                        <li><strong>Blue circles</strong> represent sample sites</li>
-                        <li><strong>Red arrows</strong> represent environmental variables</li>
-                        <li><strong>Green arrows</strong> represent organism species</li>
-                        <li>PC1 and PC2 capture the most variation in the dataset</li>
-                        <li>Distance between sites reflects overall similarity</li>
-                        <li>Variables pointing in similar directions are correlated</li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="card">
-                <h2>📊 Phyla Composition by Site</h2>
-                <p style="color: #666; margin-bottom: 20px;">Stacked bar chart showing relative abundance of organisms at each sampling site</p>
-                <canvas id="phylaCanvas" width="900" height="500"></canvas>
-                <div class="info-section" style="margin-top: 20px;">
-                    <h3>📌 Composition Details</h3>
-                    <p>Each bar represents 100% of the organism community at that site. Colors indicate different phyla/groups.</p>
-                </div>
+            <div class="info-section">
+                <h3>ℹ️ About This Model</h3>
+                <ul>
+                    <li>Uses Linear Regression for accurate predictions</li>
+                    <li>Features are standardized using StandardScaler</li>
+                    <li>Trained on 15 water quality samples (complete environmental data)</li>
+                    <li>R² score indicates model fit quality (0-1, higher is better)</li>
+                    <li>RMSE measures prediction error (lower is better)</li>
+                </ul>
             </div>
         </div>
 
-        <!-- CORRELATIONS PAGE -->
-        <div id="page-correlations" class="page-section">
-            <div class="card">
-                <h2>📈 Correlation Matrix</h2>
-                <p style="color: #666; margin-bottom: 10px;">Pearson correlation coefficients between water parameters and organism abundance</p>
-                <div id="corrTableContainer"></div>
-                <canvas id="corrHeatmap" width="900" height="400" style="margin-top:30px;"></canvas>
-                <div class="info-section" style="margin-top: 20px;">
-                    <h3>📌 Interpretation</h3>
-                    <ul>
-                        <li>Values range from -1 (strong negative) to +1 (strong positive)</li>
-                        <li>Values near 0 indicate weak or no linear relationship</li>
-                        <li>Darker blue = stronger positive correlation</li>
-                        <li>Darker red = stronger negative correlation</li>
-                    </ul>
-                </div>
+        <div class="card">
+            <h2>📊 Canonical Correspondence Analysis (CCA)</h2>
+            <p style="color: #666; margin-bottom: 20px;">Biplot showing relationships between water quality parameters and organism abundance</p>
+            <canvas id="ccaCanvas" width="900" height="700"></canvas>
+            <div class="info-section" style="margin-top: 20px;">
+                <h3>📌 How to Read the CCA Biplot</h3>
+                <ul>
+                    <li><strong>Blue circles</strong> represent sample sites (water samples)</li>
+                    <li><strong>Red arrows</strong> represent environmental variables (water parameters)</li>
+                    <li><strong>Green arrows</strong> represent organism species</li>
+                    <li>Arrow length indicates strength of relationship</li>
+                    <li>Arrow direction shows correlation pattern</li>
+                    <li>Organisms near environmental arrows are positively associated</li>
+                </ul>
             </div>
         </div>
 
-        <!-- MODELS PAGE -->
-        <div id="page-models" class="page-section">
-            <div class="card">
-                <h2>🧮 Linear Regression Models</h2>
-                <p style="color: #666; margin-bottom: 10px;">Model performance and coefficients for each organism</p>
-                <div id="modelsContainer" class="models-grid"></div>
+        <div class="card">
+            <h2>🔬 Principal Component Analysis (PCA)</h2>
+            <p style="color: #666; margin-bottom: 20px;">Ordination showing overall variation patterns in combined environmental and biological data</p>
+            <canvas id="pcaCanvas" width="900" height="700"></canvas>
+            <div class="info-section" style="margin-top: 20px;">
+                <h3>📌 How to Read the PCA Biplot</h3>
+                <ul>
+                    <li><strong>Blue circles</strong> represent sample sites</li>
+                    <li><strong>Red arrows</strong> represent environmental variables</li>
+                    <li><strong>Green arrows</strong> represent organism species</li>
+                    <li>PC1 and PC2 capture the most variation in the dataset</li>
+                    <li>Distance between sites reflects overall similarity</li>
+                    <li>Variables pointing in similar directions are correlated</li>
+                </ul>
             </div>
-            <div class="card">
-                <h2>📊 Actual vs Predicted</h2>
-                <canvas id="avpCanvas" width="900" height="400"></canvas>
+        </div>
+
+        <div class="card">
+            <h2>📊 Phyla Composition by Site</h2>
+            <p style="color: #666; margin-bottom: 20px;">Stacked bar chart showing relative abundance of organisms at each sampling site</p>
+            <canvas id="phylaCanvas" width="900" height="550"></canvas>
+            <div class="info-section" style="margin-top: 20px;">
+                <h3>📌 Composition Details</h3>
+                <p>Each bar represents 100% of the organism community at that site. Colors indicate different phyla/groups.</p>
             </div>
         </div>
     </div>
 
+    <!-- CORRELATIONS PAGE -->
+    <div id="page-correlations" class="page-section">
+        <div class="card">
+            <h2>📈 Correlation Matrix</h2>
+            <p style="color: #666; margin-bottom: 10px;">Pearson correlation coefficients between water parameters and organism abundance</p>
+            <div id="corrTableContainer"></div>
+            <canvas id="corrHeatmap" width="900" height="500" style="margin-top:30px;"></canvas>
+            <div class="info-section" style="margin-top: 20px;">
+                <h3>📌 Interpretation</h3>
+                <ul>
+                    <li>Values range from -1 (strong negative) to +1 (strong positive)</li>
+                    <li>Values near 0 indicate weak or no linear relationship</li>
+                    <li>Darker blue = stronger positive correlation</li>
+                    <li>Darker red = stronger negative correlation</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODELS PAGE -->
+    <div id="page-models" class="page-section">
+        <div class="card">
+            <h2>🧮 Linear Regression Models</h2>
+            <p style="color: #666; margin-bottom: 10px;">Model performance and coefficients for each organism</p>
+            <div id="modelsContainer" class="models-grid"></div>
+        </div>
+        <div class="card">
+            <h2>📊 Actual vs Predicted</h2>
+            <canvas id="avpCanvas" width="900" height="450"></canvas>
+        </div>
+    </div>
+</div>
+
 <script>
 // ============================================================
-// DATA
+// DATA — 15 samples, 9 organisms
 // ============================================================
 const data = [
-    {id:'L/S', temp:25.5, pH:8.9,  cond:1581, sat:10.54, Pseudomonadota:0.39, Actinomycetota:0.20, Chordata:0.15, Cyanobacteriota:0.11, Other:0.15},
-    {id:'L/F', temp:25.8, pH:6.98, cond:621,  sat:10.42, Pseudomonadota:0.41, Actinomycetota:0.31, Chordata:0.19, Cyanobacteriota:0.07, Other:0.03},
-    {id:'B/S', temp:26.6, pH:6.78, cond:551,  sat:14.69, Pseudomonadota:0.57, Actinomycetota:0.14, Chordata:0.16, Cyanobacteriota:0.08, Other:0.05},
-    {id:'B/F', temp:26.1, pH:6.99, cond:591,  sat:11.48, Pseudomonadota:0.51, Actinomycetota:0.21, Chordata:0.12, Cyanobacteriota:0.12, Other:0.04},
-    {id:'L/F2', temp:26,   pH:7.12, cond:855,  sat:15.98, Pseudomonadota:0.49, Actinomycetota:0.18, Chordata:0.26, Cyanobacteriota:0.04, Other:0.02},
-    {id:'B/S2', temp:26,   pH:7.12, cond:256,  sat:20.58, Pseudomonadota:0.52, Actinomycetota:0.18, Chordata:0.24, Cyanobacteriota:0.01, Other:0.06},
-    {id:'B/F2', temp:26.1, pH:7.06, cond:455,  sat:33.87, Pseudomonadota:0.50, Actinomycetota:0.16, Chordata:0.28, Cyanobacteriota:0.03, Other:0.03}
+    {id:'S16', site:'LS', temp:25.5,  pH:8.91,     cond:58.0,  sat:110.54, Pseudomonadota:0.449,  Actinomycetota:0.2285, Chordata:0.168,  Cyanobacteriota:0.1300, Bacteroidota:0.0072, Bacillota:0.0069, Verrucomicrobiota:0.0047, Planctomycetota:0.0046, Other:0.0011},
+    {id:'S17', site:'LF', temp:25.8,  pH:6.98,     cond:62.0,  sat:110.42, Pseudomonadota:0.4159, Actinomycetota:0.3098, Chordata:0.1874, Cyanobacteriota:0.0653, Bacteroidota:0.0093, Bacillota:0.0073, Verrucomicrobiota:0.0028, Planctomycetota:0.0009, Other:0.0013},
+    {id:'S18', site:'BS', temp:26.6,  pH:6.78,     cond:55.0,  sat:114.69, Pseudomonadota:0.5765, Actinomycetota:0.1408, Chordata:0.1674, Cyanobacteriota:0.0859, Bacteroidota:0.0165, Bacillota:0.0060, Verrucomicrobiota:0.0024, Planctomycetota:0.0038, Other:0.0007},
+    {id:'S19', site:'BF', temp:26.1,  pH:6.99,     cond:59.0,  sat:111.48, Pseudomonadota:0.5186, Actinomycetota:0.2100, Chordata:0.1238, Cyanobacteriota:0.1203, Bacteroidota:0.0092, Bacillota:0.0070, Verrucomicrobiota:0.0048, Planctomycetota:0.0056, Other:0.0008},
+    {id:'S21', site:'LS', temp:26.0,  pH:7.128,    cond:55.8,  sat:115.98, Pseudomonadota:0.4948, Actinomycetota:0.1840, Chordata:0.2595, Cyanobacteriota:0.0384, Bacteroidota:0.0003, Bacillota:0.0045, Verrucomicrobiota:0.0068, Planctomycetota:0.0085, Other:0.0031},
+    {id:'S22', site:'LF', temp:26.0,  pH:7.122,    cond:56.2,  sat:120.58, Pseudomonadota:0.5248, Actinomycetota:0.1865, Chordata:0.2404, Cyanobacteriota:0.0133, Bacteroidota:0.0114, Bacillota:0.0070, Verrucomicrobiota:0.0086, Planctomycetota:0.0074, Other:0.0006},
+    {id:'S23', site:'BS', temp:26.1,  pH:7.064,    cond:55.0,  sat:133.87, Pseudomonadota:0.5031, Actinomycetota:0.1588, Chordata:0.2809, Cyanobacteriota:0.0323, Bacteroidota:0.0055, Bacillota:0.0024, Verrucomicrobiota:0.0077, Planctomycetota:0.0086, Other:0.0006},
+    {id:'S1',  site:'LS', temp:21.0,  pH:6.92,     cond:60.0,  sat:114.52, Pseudomonadota:0.3606, Actinomycetota:0.3257, Chordata:0.2711, Cyanobacteriota:0.0234, Bacteroidota:0.0192, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S2',  site:'LF', temp:20.5,  pH:6.75,     cond:61.0,  sat:107.84, Pseudomonadota:0.3611, Actinomycetota:0.3871, Chordata:0.2307, Cyanobacteriota:0.0101, Bacteroidota:0.0111, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S3',  site:'BS', temp:22.2,  pH:6.92,     cond:57.0,  sat:114.35, Pseudomonadota:0.3922, Actinomycetota:0.3430, Chordata:0.2554, Cyanobacteriota:0.0095, Bacteroidota:0.0000, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S4',  site:'BF', temp:21.3,  pH:6.92,     cond:60.0,  sat:106.64, Pseudomonadota:0.2520, Actinomycetota:0.1799, Chordata:0.4947, Cyanobacteriota:0.0367, Bacteroidota:0.0367, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S5',  site:'LS', temp:19.6,  pH:6.63,     cond:56.5,  sat:112.0,  Pseudomonadota:0.2871, Actinomycetota:0.1658, Chordata:0.3468, Cyanobacteriota:0.1908, Bacteroidota:0.0095, Bacillota:0.0000, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S6',  site:'LF', temp:18.85, pH:6.92,     cond:60.5,  sat:114.46, Pseudomonadota:0.3926, Actinomycetota:0.4174, Chordata:0.1476, Cyanobacteriota:0.0168, Bacteroidota:0.0175, Bacillota:0.0067, Verrucomicrobiota:0.0012, Planctomycetota:0.0000, Other:0.0000},
+    {id:'S7',  site:'BS', temp:20.95, pH:6.91,     cond:60.0,  sat:120.05, Pseudomonadota:0.3712, Actinomycetota:0.4017, Chordata:0.1698, Cyanobacteriota:0.0325, Bacteroidota:0.0120, Bacillota:0.0112, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0016},
+    {id:'S8',  site:'BF', temp:20.85, pH:6.755,    cond:60.0,  sat:115.52, Pseudomonadota:0.3525, Actinomycetota:0.3839, Chordata:0.2077, Cyanobacteriota:0.0305, Bacteroidota:0.0188, Bacillota:0.0066, Verrucomicrobiota:0.0000, Planctomycetota:0.0000, Other:0.0000},
 ];
-const organisms = ['Pseudomonadota','Actinomycetota','Chordata','Cyanobacteriota','Other'];
+
+const organisms = ['Pseudomonadota','Actinomycetota','Chordata','Cyanobacteriota','Bacteroidota','Bacillota','Verrucomicrobiota','Planctomycetota','Other'];
 const waterParams = ['temp','pH','cond','sat'];
-const paramNames = {temp:'Temperature', pH:'pH', cond:'Conductivity', sat:'Dissolved Oxygen'};
+const paramNames = {temp:'Temperature', pH:'pH', cond:'Conductivity', sat:'% Saturated'};
 
 // ============================================================
 // MATH UTILITIES
 // ============================================================
 function mean(arr) { return arr.reduce((a,b)=>a+b,0)/arr.length; }
-function std(arr) {
-    const m = mean(arr);
-    return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length);
-}
-function dot(a, b) { return a.reduce((s,v,i)=>s+v*b[i],0); }
+function std(arr) { const m=mean(arr); return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length); }
+function dot(a,b) { return a.reduce((s,v,i)=>s+v*b[i],0); }
+function matMul(A,B) { const m=A.length,n=B.length,p=B[0].length; return Array.from({length:m},(_,i)=>Array.from({length:p},(_,j)=>A[i].reduce((s,v,k)=>s+v*B[k][j],0))); }
+function transpose(A) { return A[0].map((_,j)=>A.map(r=>r[j])); }
 
-// Matrix multiplication [m x n] @ [n x p] => [m x p]
-function matMul(A, B) {
-    const m=A.length, n=B.length, p=B[0].length;
-    return Array.from({length:m},(_,i)=>Array.from({length:p},(_,j)=>
-        A[i].reduce((s,v,k)=>s+v*B[k][j],0)));
-}
-
-// Transpose
-function transpose(A) {
-    return A[0].map((_,j)=>A.map(r=>r[j]));
-}
-
-// StandardScaler
 function standardScale(matrix) {
-    const T = transpose(matrix);
-    const means = T.map(mean);
-    const stds  = T.map(s => { const v=std(s); return v===0?1:v; });
-    const scaled = matrix.map(row => row.map((v,j)=>(v-means[j])/stds[j]));
-    return { scaled, means, stds };
+    const T=transpose(matrix);
+    const means=T.map(mean);
+    const stds=T.map(s=>{const v=std(s);return v===0?1:v;});
+    const scaled=matrix.map(row=>row.map((v,j)=>(v-means[j])/stds[j]));
+    return {scaled,means,stds};
+}
+function applyScale(row,means,stds) { return row.map((v,j)=>(v-means[j])/stds[j]); }
+
+function pearson(x,y) {
+    const mx=mean(x),my=mean(y);
+    const num=x.reduce((s,v,i)=>s+(v-mx)*(y[i]-my),0);
+    const den=Math.sqrt(x.reduce((s,v)=>s+(v-mx)**2,0)*y.reduce((s,v)=>s+(v-my)**2,0));
+    return den===0?0:num/den;
 }
 
-function applyScale(row, means, stds) {
-    return row.map((v,j)=>(v-means[j])/stds[j]);
+function olsSolve(X,y) {
+    const Xa=X.map(row=>[1,...row]);
+    const XaT=transpose(Xa);
+    const XtX=matMul(XaT,Xa);
+    const Xty=XaT.map(row=>dot(row,y));
+    const beta=gaussianElim(XtX,Xty);
+    return {intercept:beta[0],coefs:beta.slice(1)};
 }
 
-// Pearson correlation
-function pearson(x, y) {
-    const mx=mean(x), my=mean(y);
-    const num = x.reduce((s,v,i)=>s+(v-mx)*(y[i]-my),0);
-    const den = Math.sqrt(x.reduce((s,v)=>s+(v-mx)**2,0)*y.reduce((s,v)=>s+(v-my)**2,0));
-    return den===0 ? 0 : num/den;
-}
-
-// OLS: solves X_aug (with intercept col) via normal equations
-function olsSolve(X, y) {
-    // Add intercept column
-    const n = X.length, p = X[0].length;
-    const Xa = X.map(row=>[1,...row]);
-    const XaT = transpose(Xa);
-    const XtX = matMul(XaT, Xa);
-    const Xty = XaT.map(row=>dot(row,y));
-    // Solve via Cholesky / simple Gaussian elimination
-    const beta = gaussianElim(XtX, Xty);
-    return { intercept: beta[0], coefs: beta.slice(1) };
-}
-
-function gaussianElim(A, b) {
-    const n = b.length;
-    const M = A.map((row,i)=>[...row, b[i]]);
+function gaussianElim(A,b) {
+    const n=b.length;
+    const M=A.map((row,i)=>[...row,b[i]]);
     for(let col=0;col<n;col++){
-        // Partial pivot
         let maxRow=col;
         for(let r=col+1;r<n;r++) if(Math.abs(M[r][col])>Math.abs(M[maxRow][col])) maxRow=r;
         [M[col],M[maxRow]]=[M[maxRow],M[col]];
@@ -526,65 +316,54 @@ function gaussianElim(A, b) {
     return x;
 }
 
-// R2, RMSE
-function r2score(actual, predicted) {
+function r2score(actual,predicted) {
     const m=mean(actual);
     const ss_res=actual.reduce((s,v,i)=>s+(v-predicted[i])**2,0);
     const ss_tot=actual.reduce((s,v)=>s+(v-m)**2,0);
     return ss_tot===0?1:1-ss_res/ss_tot;
 }
-function rmse(actual, predicted) {
-    return Math.sqrt(actual.reduce((s,v,i)=>s+(v-predicted[i])**2,0)/actual.length);
-}
+function rmse(actual,predicted) { return Math.sqrt(actual.reduce((s,v,i)=>s+(v-predicted[i])**2,0)/actual.length); }
 
 // ============================================================
 // LINEAR REGRESSION MODEL
 // ============================================================
 function buildModel(organism) {
-    const X = data.map(d=>waterParams.map(p=>d[p]));
-    const y = data.map(d=>d[organism]);
-    const {scaled, means, stds} = standardScale(X);
-    const {intercept, coefs} = olsSolve(scaled, y);
-    const yPred = scaled.map(row=>intercept + dot(coefs, row));
-    const r2 = r2score(y, yPred);
-    const rms = rmse(y, yPred);
-    const corrs = {};
-    waterParams.forEach(p=>{ corrs[p]=pearson(data.map(d=>d[p]), y); });
-    return { intercept, coefs, means, stds, r2, rmse:rms, correlations:corrs, yPred, y };
+    const X=data.map(d=>waterParams.map(p=>d[p]));
+    const y=data.map(d=>d[organism]);
+    const {scaled,means,stds}=standardScale(X);
+    const {intercept,coefs}=olsSolve(scaled,y);
+    const yPred=scaled.map(row=>intercept+dot(coefs,row));
+    const r2=r2score(y,yPred);
+    const rms=rmse(y,yPred);
+    const corrs={};
+    waterParams.forEach(p=>{corrs[p]=pearson(data.map(d=>d[p]),y);});
+    return {intercept,coefs,means,stds,r2,rmse:rms,correlations:corrs,yPred,y};
 }
 
-function predict(organism, temp, ph, cond, sat) {
-    const m = buildModel(organism);
-    const rawRow = [temp, ph, cond, sat];
-    const scaledRow = applyScale(rawRow, m.means, m.stds);
-    let pred = m.intercept + dot(m.coefs, scaledRow);
-    pred = Math.max(0, Math.min(1, pred));
-    return { prediction: pred, r2: m.r2, rmse: m.rmse, correlations: m.correlations, coefs: m.coefs };
+function predict(organism,temp,ph,cond,sat) {
+    const m=buildModel(organism);
+    const rawRow=[temp,ph,cond,sat];
+    const scaledRow=applyScale(rawRow,m.means,m.stds);
+    let pred=m.intercept+dot(m.coefs,scaledRow);
+    pred=Math.max(0,Math.min(1,pred));
+    return {prediction:pred,r2:m.r2,rmse:m.rmse,correlations:m.correlations,coefs:m.coefs};
 }
 
 // ============================================================
-// PCA (power iteration / covariance eigen-decomposition for 2D)
+// PCA
 // ============================================================
 function pca2D(matrix) {
-    const n = matrix.length, p = matrix[0].length;
-    const {scaled} = standardScale(matrix);
-    // Covariance matrix
-    const ST = transpose(scaled);
-    const cov = Array.from({length:p},(_,i)=>Array.from({length:p},(_,j)=>
-        dot(ST[i],ST[j])/n));
-    // Power iteration for top 2 eigenvectors
-    function powerIter(C, deflate=null) {
-        let v = Array.from({length:p},()=>Math.random()-0.5);
-        if(deflate) {
-            // deflate: remove component along deflate direction
-            const d = dot(v, deflate);
-            v = v.map((x,i)=>x - d*deflate[i]);
-        }
-        // normalize
-        let norm = Math.sqrt(dot(v,v)); v=v.map(x=>x/norm);
+    const n=matrix.length,p=matrix[0].length;
+    const {scaled}=standardScale(matrix);
+    const ST=transpose(scaled);
+    const cov=Array.from({length:p},(_,i)=>Array.from({length:p},(_,j)=>dot(ST[i],ST[j])/n));
+    function powerIter(C,deflate=null){
+        let v=Array.from({length:p},()=>Math.random()-0.5);
+        if(deflate){const d=dot(v,deflate);v=v.map((x,i)=>x-d*deflate[i]);}
+        let norm=Math.sqrt(dot(v,v));v=v.map(x=>x/norm);
         for(let iter=0;iter<200;iter++){
-            let w = C.map(row=>dot(row,v));
-            if(deflate){ const d=dot(w,deflate); w=w.map((x,i)=>x-d*deflate[i]); }
+            let w=C.map(row=>dot(row,v));
+            if(deflate){const d=dot(w,deflate);w=w.map((x,i)=>x-d*deflate[i]);}
             norm=Math.sqrt(dot(w,w));
             if(norm<1e-12) break;
             const vNew=w.map(x=>x/norm);
@@ -592,66 +371,43 @@ function pca2D(matrix) {
             v=vNew;
             if(diff<1e-10) break;
         }
-        const eigenvalue = dot(v, C.map(row=>dot(row,v)));
-        return {vec:v, val:eigenvalue};
+        const eigenvalue=dot(v,C.map(row=>dot(row,v)));
+        return {vec:v,val:eigenvalue};
     }
-    const e1 = powerIter(cov);
-    const e2 = powerIter(cov, e1.vec);
-    // Project
-    const scores = scaled.map(row=>[dot(row,e1.vec), dot(row,e2.vec)]);
-    // Total variance
-    const totalVar = cov.reduce((s,row,i)=>s+row[i],0);
-    const varRatio1 = Math.abs(e1.val)/totalVar;
-    const varRatio2 = Math.abs(e2.val)/totalVar;
-    // Loadings
-    const loadings = Array.from({length:p},(_,i)=>[
-        e1.vec[i]*Math.sqrt(Math.abs(e1.val)),
-        e2.vec[i]*Math.sqrt(Math.abs(e2.val))
-    ]);
-    return { scores, loadings, varRatio1, varRatio2 };
+    const e1=powerIter(cov);
+    const e2=powerIter(cov,e1.vec);
+    const scores=scaled.map(row=>[dot(row,e1.vec),dot(row,e2.vec)]);
+    const totalVar=cov.reduce((s,row,i)=>s+row[i],0);
+    const varRatio1=Math.abs(e1.val)/totalVar;
+    const varRatio2=Math.abs(e2.val)/totalVar;
+    const loadings=Array.from({length:p},(_,i)=>[e1.vec[i]*Math.sqrt(Math.abs(e1.val)),e2.vec[i]*Math.sqrt(Math.abs(e2.val))]);
+    return {scores,loadings,varRatio1,varRatio2};
 }
 
-// ============================================================
-// ANALYSIS DATA GENERATION
-// ============================================================
 function getCCAData() {
-    const envMatrix = data.map(d=>waterParams.map(p=>d[p]));
-    const sppMatrix = data.map(d=>organisms.map(o=>d[o]));
-    const envPCA = pca2D(envMatrix);
-    const sppPCA = pca2D(sppMatrix);
-    const sites = data.map((d,i)=>({id:d.id, x:envPCA.scores[i][0], y:envPCA.scores[i][1]}));
-    const envArrows = waterParams.map((p,i)=>({
-        name:paramNames[p],
-        x:envPCA.loadings[i][0]*2.5,
-        y:envPCA.loadings[i][1]*2.5
-    }));
-    const sppArrows = organisms.map((o,i)=>({
-        name:o,
-        x:sppPCA.loadings[i][0]*2.5,
-        y:sppPCA.loadings[i][1]*2.5
-    }));
-    return {
-        sites, environmental_arrows:envArrows, species_arrows:sppArrows,
-        explained_variance:{axis1:envPCA.varRatio1*100, axis2:envPCA.varRatio2*100}
-    };
+    const envMatrix=data.map(d=>waterParams.map(p=>d[p]));
+    const sppMatrix=data.map(d=>organisms.map(o=>d[o]));
+    const envPCA=pca2D(envMatrix);
+    const sppPCA=pca2D(sppMatrix);
+    const sites=data.map((d,i)=>({id:d.id,x:envPCA.scores[i][0],y:envPCA.scores[i][1]}));
+    const envArrows=waterParams.map((p,i)=>({name:paramNames[p],x:envPCA.loadings[i][0]*2.5,y:envPCA.loadings[i][1]*2.5}));
+    const sppArrows=organisms.map((o,i)=>({name:o,x:sppPCA.loadings[i][0]*2.5,y:sppPCA.loadings[i][1]*2.5}));
+    return {sites,environmental_arrows:envArrows,species_arrows:sppArrows,explained_variance:{axis1:envPCA.varRatio1*100,axis2:envPCA.varRatio2*100}};
 }
 
 function getPCAData() {
-    const combined = data.map(d=>[...waterParams.map(p=>d[p]), ...organisms.map(o=>d[o])]);
-    const allVars = [...waterParams.map(p=>paramNames[p]), ...organisms];
-    const res = pca2D(combined);
-    const sites = data.map((d,i)=>({id:d.id, x:res.scores[i][0], y:res.scores[i][1]}));
-    const arrows = allVars.map((name,i)=>({
-        name, x:res.loadings[i][0]*3, y:res.loadings[i][1]*3,
-        type: i<waterParams.length?'environmental':'species'
-    }));
-    return { sites, arrows, explained_variance:{pc1:res.varRatio1*100, pc2:res.varRatio2*100, total:(res.varRatio1+res.varRatio2)*100}};
+    const combined=data.map(d=>[...waterParams.map(p=>d[p]),...organisms.map(o=>d[o])]);
+    const allVars=[...waterParams.map(p=>paramNames[p]),...organisms];
+    const res=pca2D(combined);
+    const sites=data.map((d,i)=>({id:d.id,x:res.scores[i][0],y:res.scores[i][1]}));
+    const arrows=allVars.map((name,i)=>({name,x:res.loadings[i][0]*3,y:res.loadings[i][1]*3,type:i<waterParams.length?'environmental':'species'}));
+    return {sites,arrows,explained_variance:{pc1:res.varRatio1*100,pc2:res.varRatio2*100,total:(res.varRatio1+res.varRatio2)*100}};
 }
 
 // ============================================================
 // PAGE NAVIGATION
 // ============================================================
-function showPage(name, btn) {
+function showPage(name,btn) {
     document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
     document.getElementById('page-'+name).classList.add('active');
@@ -661,139 +417,110 @@ function showPage(name, btn) {
 }
 
 // ============================================================
-// CANVAS BIPLOT RENDERING (same logic as original)
+// CANVAS BIPLOT
 // ============================================================
-function renderBiplot(canvasId, sites, envArrows, sppArrows, axisLabel1, axisLabel2) {
-    const canvas = document.getElementById(canvasId);
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width, height = canvas.height;
-
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, width, height);
-
-    const allX = [...sites.map(s=>s.x), ...envArrows.map(a=>a.x), ...sppArrows.map(a=>a.x)];
-    const allY = [...sites.map(s=>s.y), ...envArrows.map(a=>a.y), ...sppArrows.map(a=>a.y)];
-    const maxX = Math.max(...allX.map(Math.abs));
-    const maxY = Math.max(...allY.map(Math.abs));
-    const scale = Math.min(width, height) / 3.2 / Math.max(maxX, maxY, 0.001);
-    const centerX = width/2, centerY = height/2;
-
-    function toCanvasX(x) { return centerX + x*scale; }
-    function toCanvasY(y) { return centerY - y*scale; }
-
-    // Axes
-    ctx.strokeStyle = '#ccc'; ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0,centerY); ctx.lineTo(width,centerY);
-    ctx.moveTo(centerX,0); ctx.lineTo(centerX,height);
-    ctx.stroke();
-
-    // Axis labels
-    ctx.fillStyle = '#666'; ctx.font = 'bold 14px Arial'; ctx.textAlign = 'center';
-    ctx.fillText(axisLabel1, width-80, centerY-10);
-    ctx.save(); ctx.translate(20,80); ctx.rotate(-Math.PI/2);
-    ctx.fillText(axisLabel2, 0, 0); ctx.restore();
-
-    // Sites
+function renderBiplot(canvasId,sites,envArrows,sppArrows,axisLabel1,axisLabel2) {
+    const canvas=document.getElementById(canvasId);
+    const ctx=canvas.getContext('2d');
+    const width=canvas.width,height=canvas.height;
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,width,height);
+    const allX=[...sites.map(s=>s.x),...envArrows.map(a=>a.x),...sppArrows.map(a=>a.x)];
+    const allY=[...sites.map(s=>s.y),...envArrows.map(a=>a.y),...sppArrows.map(a=>a.y)];
+    const maxX=Math.max(...allX.map(Math.abs));
+    const maxY=Math.max(...allY.map(Math.abs));
+    const scale=Math.min(width,height)/3.2/Math.max(maxX,maxY,0.001);
+    const centerX=width/2,centerY=height/2;
+    function toCanvasX(x){return centerX+x*scale;}
+    function toCanvasY(y){return centerY-y*scale;}
+    ctx.strokeStyle='#ccc';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(0,centerY);ctx.lineTo(width,centerY);ctx.moveTo(centerX,0);ctx.lineTo(centerX,height);ctx.stroke();
+    ctx.fillStyle='#666';ctx.font='bold 14px Arial';ctx.textAlign='center';
+    ctx.fillText(axisLabel1,width-80,centerY-10);
+    ctx.save();ctx.translate(20,80);ctx.rotate(-Math.PI/2);ctx.fillText(axisLabel2,0,0);ctx.restore();
     sites.forEach(site=>{
-        const x=toCanvasX(site.x), y=toCanvasY(site.y);
-        ctx.fillStyle = 'rgba(33,150,243,0.7)'; ctx.strokeStyle='#1976d2'; ctx.lineWidth=2;
-        ctx.beginPath(); ctx.arc(x,y,8,0,2*Math.PI); ctx.fill(); ctx.stroke();
-        ctx.fillStyle='#1976d2'; ctx.font='11px Arial'; ctx.textAlign='center';
-        ctx.fillText(site.id.toString(), x, y-12);
+        const x=toCanvasX(site.x),y=toCanvasY(site.y);
+        ctx.fillStyle='rgba(33,150,243,0.7)';ctx.strokeStyle='#1976d2';ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(x,y,7,0,2*Math.PI);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#1976d2';ctx.font='10px Arial';ctx.textAlign='center';
+        ctx.fillText(site.id,x,y-10);
     });
-
-    // Draw arrow helper
-    function drawArrow(arrow, color) {
-        const x=toCanvasX(arrow.x), y=toCanvasY(arrow.y);
-        ctx.strokeStyle=color; ctx.fillStyle=color; ctx.lineWidth=2.5;
-        ctx.beginPath(); ctx.moveTo(centerX,centerY); ctx.lineTo(x,y); ctx.stroke();
-        const angle=Math.atan2(centerY-y, x-centerX), headSize=10;
-        ctx.beginPath();
-        ctx.moveTo(x,y);
-        ctx.lineTo(x-headSize*Math.cos(angle-Math.PI/6), y+headSize*Math.sin(angle-Math.PI/6));
-        ctx.lineTo(x-headSize*Math.cos(angle+Math.PI/6), y+headSize*Math.sin(angle+Math.PI/6));
-        ctx.closePath(); ctx.fill();
-        ctx.font='bold 12px Arial'; ctx.textAlign='center';
-        const lx=x+30*Math.cos(angle), ly=y-30*Math.sin(angle);
+    function drawArrow(arrow,color){
+        const x=toCanvasX(arrow.x),y=toCanvasY(arrow.y);
+        ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.5;
+        ctx.beginPath();ctx.moveTo(centerX,centerY);ctx.lineTo(x,y);ctx.stroke();
+        const angle=Math.atan2(centerY-y,x-centerX),headSize=10;
+        ctx.beginPath();ctx.moveTo(x,y);
+        ctx.lineTo(x-headSize*Math.cos(angle-Math.PI/6),y+headSize*Math.sin(angle-Math.PI/6));
+        ctx.lineTo(x-headSize*Math.cos(angle+Math.PI/6),y+headSize*Math.sin(angle+Math.PI/6));
+        ctx.closePath();ctx.fill();
+        ctx.font='bold 11px Arial';ctx.textAlign='center';
+        const lx=x+28*Math.cos(angle),ly=y-28*Math.sin(angle);
         const m=ctx.measureText(arrow.name);
-        ctx.fillStyle='rgba(255,255,255,0.95)';
-        ctx.fillRect(lx-m.width/2-3, ly-11, m.width+6, 16);
-        ctx.fillStyle=color; ctx.fillText(arrow.name, lx, ly);
+        ctx.fillStyle='rgba(255,255,255,0.95)';ctx.fillRect(lx-m.width/2-3,ly-11,m.width+6,16);
+        ctx.fillStyle=color;ctx.fillText(arrow.name,lx,ly);
     }
-
     envArrows.forEach(a=>drawArrow(a,'#e53935'));
     sppArrows.forEach(a=>drawArrow(a,'#43a047'));
-
-    // Legend
-    const lx=20, ly=height-80;
-    ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.fillRect(lx-5,ly-5,150,70);
-    ctx.strokeStyle='#ddd'; ctx.lineWidth=1; ctx.strokeRect(lx-5,ly-5,150,70);
-    ctx.font='12px Arial'; ctx.textAlign='left';
-    ctx.fillStyle='#1976d2'; ctx.beginPath(); ctx.arc(lx+5,ly+5,5,0,2*Math.PI); ctx.fill();
-    ctx.fillStyle='#333'; ctx.fillText('Sample sites',lx+15,ly+10);
-    ctx.strokeStyle='#e53935'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(lx,ly+25); ctx.lineTo(lx+15,ly+25); ctx.stroke();
-    ctx.fillStyle='#333'; ctx.fillText('Environment',lx+20,ly+30);
+    const lx=20,ly=height-90;
+    ctx.fillStyle='rgba(255,255,255,0.9)';ctx.fillRect(lx-5,ly-5,170,80);
+    ctx.strokeStyle='#ddd';ctx.lineWidth=1;ctx.strokeRect(lx-5,ly-5,170,80);
+    ctx.font='12px Arial';ctx.textAlign='left';
+    ctx.fillStyle='#1976d2';ctx.beginPath();ctx.arc(lx+5,ly+5,5,0,2*Math.PI);ctx.fill();
+    ctx.fillStyle='#333';ctx.fillText('Sample sites',lx+15,ly+10);
+    ctx.strokeStyle='#e53935';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(lx,ly+25);ctx.lineTo(lx+15,ly+25);ctx.stroke();
+    ctx.fillStyle='#333';ctx.fillText('Environment',lx+20,ly+30);
     ctx.strokeStyle='#43a047';
-    ctx.beginPath(); ctx.moveTo(lx,ly+45); ctx.lineTo(lx+15,ly+45); ctx.stroke();
-    ctx.fillStyle='#333'; ctx.fillText('Species',lx+20,ly+50);
+    ctx.beginPath();ctx.moveTo(lx,ly+50);ctx.lineTo(lx+15,ly+50);ctx.stroke();
+    ctx.fillStyle='#333';ctx.fillText('Species',lx+20,ly+55);
 }
 
 function renderPhyla() {
-    const canvas = document.getElementById('phylaCanvas');
-    const ctx = canvas.getContext('2d');
-    const width=canvas.width, height=canvas.height;
-    ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,width,height);
-
-    const margin={top:40,right:200,bottom:60,left:60};
+    const canvas=document.getElementById('phylaCanvas');
+    const ctx=canvas.getContext('2d');
+    const width=canvas.width,height=canvas.height;
+    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,width,height);
+    const margin={top:40,right:220,bottom:70,left:60};
     const chartWidth=width-margin.left-margin.right;
     const chartHeight=height-margin.top-margin.bottom;
-    const colors=['#1976d2','#43a047','#f57c00','#e53935','#9c27b0'];
+    const colors=['#1976d2','#43a047','#f57c00','#e53935','#9c27b0','#00838f','#ef6c00','#558b2f','#757575'];
     const barWidth=chartWidth/data.length;
-    const padding=barWidth*0.2;
-
-    ctx.fillStyle='#333'; ctx.font='bold 16px Arial'; ctx.textAlign='center';
-    ctx.fillText('Organism Composition by Site', width/2, 25);
-
+    const padding=barWidth*0.15;
+    ctx.fillStyle='#333';ctx.font='bold 16px Arial';ctx.textAlign='center';
+    ctx.fillText('Organism Composition by Site',width/2,25);
     data.forEach((site,idx)=>{
         const x=margin.left+idx*barWidth+padding/2;
         let cumY=0;
         organisms.forEach((org,oi)=>{
-            const val=site[org];
+            const val=site[org]||0;
             const bh=val*chartHeight;
             const y=margin.top+chartHeight-cumY-bh;
             ctx.fillStyle=colors[oi];
             ctx.fillRect(x,y,barWidth-padding,bh);
             cumY+=bh;
         });
-        ctx.fillStyle='#333'; ctx.font='12px Arial'; ctx.textAlign='center';
-        ctx.fillText(`Site ${site.id}`, x+(barWidth-padding)/2, height-margin.bottom+20);
+        ctx.fillStyle='#333';ctx.font='10px Arial';ctx.textAlign='center';
+        ctx.save();ctx.translate(x+(barWidth-padding)/2,height-margin.bottom+8);ctx.rotate(-Math.PI/4);
+        ctx.fillText(site.id,0,0);ctx.restore();
     });
-
-    // Axes
-    ctx.strokeStyle='#333'; ctx.lineWidth=2;
-    ctx.beginPath();
-    ctx.moveTo(margin.left,margin.top); ctx.lineTo(margin.left,margin.top+chartHeight);
-    ctx.lineTo(margin.left+chartWidth,margin.top+chartHeight); ctx.stroke();
-
+    ctx.strokeStyle='#333';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(margin.left,margin.top);ctx.lineTo(margin.left,margin.top+chartHeight);ctx.lineTo(margin.left+chartWidth,margin.top+chartHeight);ctx.stroke();
     for(let i=0;i<=10;i++){
         const y=margin.top+chartHeight-(i*chartHeight/10);
-        ctx.fillStyle='#333'; ctx.font='11px Arial'; ctx.textAlign='right';
+        ctx.fillStyle='#333';ctx.font='11px Arial';ctx.textAlign='right';
         ctx.fillText(`${i*10}%`,margin.left-10,y+4);
-        ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(margin.left,y); ctx.lineTo(margin.left+chartWidth,y); ctx.stroke();
+        ctx.strokeStyle='#e0e0e0';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(margin.left,y);ctx.lineTo(margin.left+chartWidth,y);ctx.stroke();
     }
-    ctx.save(); ctx.translate(15,height/2); ctx.rotate(-Math.PI/2);
-    ctx.font='bold 13px Arial'; ctx.textAlign='center'; ctx.fillStyle='#333';
-    ctx.fillText('Relative Abundance (%)',0,0); ctx.restore();
-
-    const lx=width-margin.right+20, ly=margin.top+20;
-    ctx.font='12px Arial'; ctx.textAlign='left';
+    ctx.save();ctx.translate(15,height/2);ctx.rotate(-Math.PI/2);
+    ctx.font='bold 13px Arial';ctx.textAlign='center';ctx.fillStyle='#333';
+    ctx.fillText('Relative Abundance (%)',0,0);ctx.restore();
+    const lx=width-margin.right+15,ly=margin.top;
+    ctx.font='11px Arial';ctx.textAlign='left';
     organisms.forEach((org,i)=>{
-        const y=ly+i*25;
-        ctx.fillStyle=colors[i]; ctx.fillRect(lx,y-10,15,15);
-        ctx.fillStyle='#333'; ctx.fillText(org,lx+20,y+2);
+        const y=ly+i*24;
+        ctx.fillStyle=colors[i];ctx.fillRect(lx,y-9,14,14);
+        ctx.fillStyle='#333';ctx.fillText(org,lx+18,y+3);
     });
 }
 
@@ -801,54 +528,48 @@ function renderPhyla() {
 // CORRELATIONS PAGE
 // ============================================================
 function renderCorrelations() {
-    // Table
-    const params = waterParams.map(p=>paramNames[p]);
-    let html = '<table class="corr-table"><thead><tr><th>Organism</th>';
-    params.forEach(p=>{ html+=`<th>${p}</th>`; });
-    html += '</tr></thead><tbody>';
+    const params=waterParams.map(p=>paramNames[p]);
+    let html='<table class="corr-table"><thead><tr><th>Organism</th>';
+    params.forEach(p=>{html+=`<th>${p}</th>`;});
+    html+='</tr></thead><tbody>';
     organisms.forEach(org=>{
-        html += `<tr><td><strong>${org}</strong></td>`;
+        html+=`<tr><td><strong>${org}</strong></td>`;
         waterParams.forEach(p=>{
-            const corr = pearson(data.map(d=>d[p]), data.map(d=>d[org]));
-            const bg = corr>0 ? `rgba(25,118,210,${Math.abs(corr)*0.7})` : `rgba(229,57,53,${Math.abs(corr)*0.7})`;
-            const fg = Math.abs(corr)>0.4 ? 'white' : '#333';
-            html += `<td style="background:${bg};color:${fg}">${corr.toFixed(3)}</td>`;
+            const corr=pearson(data.map(d=>d[p]),data.map(d=>d[org]));
+            const bg=corr>0?`rgba(25,118,210,${Math.abs(corr)*0.7})`:`rgba(229,57,53,${Math.abs(corr)*0.7})`;
+            const fg=Math.abs(corr)>0.4?'white':'#333';
+            html+=`<td style="background:${bg};color:${fg}">${corr.toFixed(3)}</td>`;
         });
-        html += '</tr>';
+        html+='</tr>';
     });
-    html += '</tbody></table>';
-    document.getElementById('corrTableContainer').innerHTML = html;
+    html+='</tbody></table>';
+    document.getElementById('corrTableContainer').innerHTML=html;
 
-    // Heatmap canvas
-    const canvas = document.getElementById('corrHeatmap');
-    const ctx = canvas.getContext('2d');
-    const w=canvas.width, h=canvas.height;
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
-
-    const marginL=160, marginT=40, marginB=40, marginR=20;
+    const canvas=document.getElementById('corrHeatmap');
+    const ctx=canvas.getContext('2d');
+    const w=canvas.width,h=canvas.height;
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+    const marginL=175,marginT=50,marginB=40,marginR=20;
     const cw=(w-marginL-marginR)/waterParams.length;
     const ch=(h-marginT-marginB)/organisms.length;
-
-    ctx.font='bold 16px Arial'; ctx.textAlign='center'; ctx.fillStyle='#333';
-    ctx.fillText('Correlation Heatmap', w/2, 25);
-
+    ctx.font='bold 16px Arial';ctx.textAlign='center';ctx.fillStyle='#333';
+    ctx.fillText('Correlation Heatmap',w/2,25);
     waterParams.forEach((p,j)=>{
-        ctx.fillStyle='#333'; ctx.font='12px Arial'; ctx.textAlign='center';
-        ctx.fillText(paramNames[p], marginL+j*cw+cw/2, marginT-5);
+        ctx.fillStyle='#333';ctx.font='12px Arial';ctx.textAlign='center';
+        ctx.fillText(paramNames[p],marginL+j*cw+cw/2,marginT-5);
     });
     organisms.forEach((org,i)=>{
-        ctx.fillStyle='#333'; ctx.font='12px Arial'; ctx.textAlign='right';
-        ctx.fillText(org, marginL-8, marginT+i*ch+ch/2+4);
+        ctx.fillStyle='#333';ctx.font='11px Arial';ctx.textAlign='right';
+        ctx.fillText(org,marginL-8,marginT+i*ch+ch/2+4);
         waterParams.forEach((p,j)=>{
             const corr=pearson(data.map(d=>d[p]),data.map(d=>d[org]));
             let r,g,b;
-            if(corr>=0){r=25;g=118;b=210;}
-            else{r=229;g=57;b=53;}
+            if(corr>=0){r=25;g=118;b=210;}else{r=229;g=57;b=53;}
             const alpha=Math.abs(corr);
             ctx.fillStyle=`rgba(${r},${g},${b},${alpha*0.85+0.1})`;
             ctx.fillRect(marginL+j*cw,marginT+i*ch,cw-2,ch-2);
-            ctx.fillStyle=alpha>0.4?'white':'#333'; ctx.font='bold 12px Arial'; ctx.textAlign='center';
-            ctx.fillText(corr.toFixed(2), marginL+j*cw+cw/2, marginT+i*ch+ch/2+4);
+            ctx.fillStyle=alpha>0.4?'white':'#333';ctx.font='bold 11px Arial';ctx.textAlign='center';
+            ctx.fillText(corr.toFixed(2),marginL+j*cw+cw/2,marginT+i*ch+ch/2+4);
         });
     });
 }
@@ -857,51 +578,42 @@ function renderCorrelations() {
 // MODELS PAGE
 // ============================================================
 function renderModels() {
-    const container = document.getElementById('modelsContainer');
-    container.innerHTML = '';
+    const container=document.getElementById('modelsContainer');
+    container.innerHTML='';
     organisms.forEach(org=>{
-        const m = buildModel(org);
-        const div = document.createElement('div');
-        div.className = 'model-card';
-        let html = `<h3>${org}</h3>`;
-        html += `<div class="model-stat"><span>R² Score</span><span style="color:#1976d2;font-weight:bold">${m.r2.toFixed(4)}</span></div>`;
-        html += `<div class="model-stat"><span>RMSE</span><span style="color:#e53935;font-weight:bold">${m.rmse.toFixed(4)}</span></div>`;
-        html += `<div class="model-stat"><span>Intercept</span><span>${m.intercept.toFixed(4)}</span></div>`;
+        const m=buildModel(org);
+        const div=document.createElement('div');
+        div.className='model-card';
+        let html=`<h3>${org}</h3>`;
+        html+=`<div class="model-stat"><span>R² Score</span><span style="color:#1976d2;font-weight:bold">${m.r2.toFixed(4)}</span></div>`;
+        html+=`<div class="model-stat"><span>RMSE</span><span style="color:#e53935;font-weight:bold">${m.rmse.toFixed(4)}</span></div>`;
+        html+=`<div class="model-stat"><span>Intercept</span><span>${m.intercept.toFixed(4)}</span></div>`;
         waterParams.forEach((p,i)=>{
-            html += `<div class="model-stat"><span>${paramNames[p]} coef</span><span>${m.coefs[i].toFixed(4)}</span></div>`;
+            html+=`<div class="model-stat"><span>${paramNames[p]} coef</span><span>${m.coefs[i].toFixed(4)}</span></div>`;
         });
-        html += `<div style="margin-top:10px;font-size:0.85em;color:#666"><strong>Correlations:</strong> `;
-        html += waterParams.map(p=>`${paramNames[p]}: ${m.correlations[p].toFixed(3)}`).join(', ');
-        html += '</div>';
-        div.innerHTML = html;
+        html+=`<div style="margin-top:10px;font-size:0.85em;color:#666"><strong>Correlations:</strong> `;
+        html+=waterParams.map(p=>`${paramNames[p]}: ${m.correlations[p].toFixed(3)}`).join(', ');
+        html+='</div>';
+        div.innerHTML=html;
         container.appendChild(div);
     });
-
-    // Actual vs predicted chart
     renderAvP();
 }
 
 function renderAvP() {
-    const canvas = document.getElementById('avpCanvas');
-    const ctx = canvas.getContext('2d');
-    const w=canvas.width, h=canvas.height;
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
-
-    const colors=['#1976d2','#43a047','#f57c00','#e53935','#9c27b0'];
-    const margin={top:40,right:200,bottom:50,left:60};
-    const cw=w-margin.left-margin.right, ch=h-margin.top-margin.bottom;
-
-    ctx.font='bold 15px Arial'; ctx.textAlign='center'; ctx.fillStyle='#333';
-    ctx.fillText('Actual vs Predicted Abundance', w/2, 25);
-
-    // axes
-    ctx.strokeStyle='#333'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(margin.left,margin.top);
-    ctx.lineTo(margin.left,margin.top+ch); ctx.lineTo(margin.left+cw,margin.top+ch); ctx.stroke();
-
+    const canvas=document.getElementById('avpCanvas');
+    const ctx=canvas.getContext('2d');
+    const w=canvas.width,h=canvas.height;
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);
+    const colors=['#1976d2','#43a047','#f57c00','#e53935','#9c27b0','#00838f','#ef6c00','#558b2f','#757575'];
+    const margin={top:40,right:160,bottom:60,left:60};
+    const cw=w-margin.left-margin.right,ch=h-margin.top-margin.bottom;
+    ctx.font='bold 15px Arial';ctx.textAlign='center';ctx.fillStyle='#333';
+    ctx.fillText('Actual vs Predicted Abundance',w/2,25);
+    ctx.strokeStyle='#333';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(margin.left,margin.top);ctx.lineTo(margin.left,margin.top+ch);ctx.lineTo(margin.left+cw,margin.top+ch);ctx.stroke();
     const siteCount=data.length;
     const barGroupW=cw/siteCount;
-
     organisms.forEach((org,oi)=>{
         const m=buildModel(org);
         data.forEach((site,si)=>{
@@ -909,98 +621,79 @@ function renderAvP() {
             const pred=m.yPred[si];
             const bw=barGroupW/(organisms.length*2+1);
             const bx=margin.left+si*barGroupW+(oi*2)*bw+bw;
-
-            // actual bar
             ctx.fillStyle=colors[oi]+'cc';
             const ah=actual*ch;
-            ctx.fillRect(bx, margin.top+ch-ah, bw, ah);
-
-            // predicted outline
-            ctx.strokeStyle=colors[oi];
-            ctx.lineWidth=2;
-            const ph2=pred*ch;
-            ctx.strokeRect(bx+bw+1, margin.top+ch-ph2, bw, ph2);
+            ctx.fillRect(bx,margin.top+ch-ah,bw,ah);
+            ctx.strokeStyle=colors[oi];ctx.lineWidth=1.5;
+            const ph2=Math.max(0,pred)*ch;
+            ctx.strokeRect(bx+bw+1,margin.top+ch-ph2,bw,ph2);
         });
     });
-
-    // Y axis labels
     for(let i=0;i<=5;i++){
         const y=margin.top+ch-i*ch/5;
-        ctx.fillStyle='#666'; ctx.font='11px Arial'; ctx.textAlign='right';
+        ctx.fillStyle='#666';ctx.font='11px Arial';ctx.textAlign='right';
         ctx.fillText(`${(i*20)}%`,margin.left-5,y+4);
-        ctx.strokeStyle='#eee'; ctx.lineWidth=1;
-        ctx.beginPath(); ctx.moveTo(margin.left,y); ctx.lineTo(margin.left+cw,y); ctx.stroke();
+        ctx.strokeStyle='#eee';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(margin.left,y);ctx.lineTo(margin.left+cw,y);ctx.stroke();
     }
-
-    // Site labels
     data.forEach((site,si)=>{
         const cx=margin.left+si*barGroupW+barGroupW/2;
-        ctx.fillStyle='#333'; ctx.font='11px Arial'; ctx.textAlign='center';
-        ctx.fillText(`S${site.id}`,cx,margin.top+ch+18);
+        ctx.fillStyle='#333';ctx.font='9px Arial';ctx.textAlign='center';
+        ctx.fillText(site.id,cx,margin.top+ch+14);
     });
-
-    // Legend
-    const lx=w-margin.right+20, ly=margin.top;
+    const lx=w-margin.right+10,ly=margin.top;
     organisms.forEach((org,i)=>{
-        const y=ly+i*28;
-        ctx.fillStyle=colors[i]+'cc'; ctx.fillRect(lx,y,14,14);
-        ctx.fillStyle='#333'; ctx.font='11px Arial'; ctx.textAlign='left';
-        ctx.fillText(org,lx+18,y+11);
+        const y=ly+i*24;
+        ctx.fillStyle=colors[i]+'cc';ctx.fillRect(lx,y,12,12);
+        ctx.fillStyle='#333';ctx.font='9px Arial';ctx.textAlign='left';
+        ctx.fillText(org,lx+16,y+9);
     });
-    ctx.fillStyle='#999'; ctx.font='10px Arial';
-    ctx.fillText('Filled=Actual, Outline=Predicted',lx, ly+organisms.length*28+15);
+    ctx.fillStyle='#999';ctx.font='9px Arial';
+    ctx.fillText('Filled=Actual, Outline=Predicted',lx,ly+organisms.length*24+12);
 }
 
 // ============================================================
 // FORM SUBMIT
 // ============================================================
-document.getElementById('predictionForm').addEventListener('submit', e=>{
+document.getElementById('predictionForm').addEventListener('submit',e=>{
     e.preventDefault();
     const loading=document.getElementById('loading');
     const result=document.getElementById('result');
-    loading.classList.add('show'); result.classList.remove('show');
-
+    loading.classList.add('show');result.classList.remove('show');
     setTimeout(()=>{
         const organism=document.getElementById('organism').value;
         const temp=parseFloat(document.getElementById('temperature').value);
         const ph=parseFloat(document.getElementById('pH').value);
         const cond=parseFloat(document.getElementById('conductivity').value);
         const sat=parseFloat(document.getElementById('saturated').value);
-
-        const res=predict(organism, temp, ph, cond, sat);
+        const res=predict(organism,temp,ph,cond,sat);
         loading.classList.remove('show');
-
         document.getElementById('resultOrganism').textContent=organism;
         document.getElementById('resultAbundance').textContent=(res.prediction*100).toFixed(2)+'%';
         const pf=document.getElementById('progressFill');
         pf.style.width='0%';
-        setTimeout(()=>{ pf.style.width=(res.prediction*100).toFixed(2)+'%'; pf.textContent=(res.prediction*100).toFixed(2)+'%'; },100);
+        setTimeout(()=>{pf.style.width=(res.prediction*100).toFixed(2)+'%';pf.textContent=(res.prediction*100).toFixed(2)+'%';},100);
         document.getElementById('r2Score').textContent=res.r2.toFixed(3);
         document.getElementById('rmse').textContent=res.rmse.toFixed(4);
-
         let html='<ul>';
-        waterParams.forEach((p,i)=>{
-            html+=`<li><strong>${paramNames[p]}:</strong> ${res.correlations[p].toFixed(4)}</li>`;
-        });
+        waterParams.forEach((p,i)=>{html+=`<li><strong>${paramNames[p]}:</strong> ${res.correlations[p].toFixed(4)}</li>`;});
         html+='</ul>';
         document.getElementById('coefficients').innerHTML=html;
         result.classList.add('show');
-    }, 300);
+    },300);
 });
 
 (function init(){
     const ccaData=getCCAData();
-    renderBiplot('ccaCanvas', ccaData.sites, ccaData.environmental_arrows, ccaData.species_arrows,
+    renderBiplot('ccaCanvas',ccaData.sites,ccaData.environmental_arrows,ccaData.species_arrows,
         `Axis 1 (${ccaData.explained_variance.axis1.toFixed(1)}%)`,
         `Axis 2 (${ccaData.explained_variance.axis2.toFixed(1)}%)`);
-
     const pcaData=getPCAData();
-    renderBiplot('pcaCanvas', pcaData.sites,
+    renderBiplot('pcaCanvas',pcaData.sites,
         pcaData.arrows.filter(a=>a.type==='environmental'),
         pcaData.arrows.filter(a=>a.type==='species'),
         `PC1 (${pcaData.explained_variance.pc1.toFixed(1)}%)`,
         `PC2 (${pcaData.explained_variance.pc2.toFixed(1)}%)`);
-
     renderPhyla();
 })();
 </script>
